@@ -1,0 +1,31 @@
+/* Weelka weyn ee fariimaha */
+.chat-window {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    height: 450px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+/* Fariintaada (Midig) */
+.my-message {
+    align-self: flex-end;
+    background-color: #0084ff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px 20px 0 20px;
+    margin: 5px;
+    max-width: 70%;
+}
+
+/* Fariinta kale (Bidix) */
+.their-message {
+    align-self: flex-start;
+    background-color: #e4e6eb;
+    color: black;
+    padding: 10px 15px;
+    border-radius: 20px 20px 20px 0;
+    margin: 5px;
+    max-width: 70%;
+}
