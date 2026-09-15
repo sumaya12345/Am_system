@@ -555,12 +555,13 @@ const sidebarStyle = {
                     }}>
                       <span style={{ fontWeight: 'bold', fontSize: '14px' }}>Ogeysiiska Caafimaadka</span>
                       <span style={{ 
-                        background: '#eef2ff',
-                        color: '#5d5fef',
+                        background: '#f1f5f9',
+                        color: '#0f1f38',
                         padding: '4px 12px', 
                         borderRadius: '20px', 
                         fontSize: '12px', 
-                        fontWeight: 'bold' 
+                        fontWeight: '700',
+                        border: '1px solid #e2e8f0'
                       }}>
                         {flaggedAskar.length} QOF
                       </span>
@@ -1222,10 +1223,10 @@ const sidebarStyle = {
                     marginBottom: '30px' 
                   }}>
                     {[
-                      { title: 'Total Personnel', value: data.length, icon: <Users size={24}/>, color: '#5d5fef' },
-                      { title: 'In Queue', value: initiatedList.length, icon: <LayoutDashboard size={24}/>, color: '#f1c40f' },
-                      { title: 'Medical Reports', value: medicalReports.length, icon: <FileText size={24}/>, color: '#27ae60' },
-                      { title: 'New Alerts', value: '12', icon: <Bell size={24}/>, color: '#e74c3c' }
+                      { title: 'Total Personnel', value: data.length, icon: <Users size={22}/>, color: '#0f1f38' },
+                      { title: 'In Queue', value: initiatedList.length, icon: <LayoutDashboard size={22}/>, color: '#162a4a' },
+                      { title: 'Medical Reports', value: medicalReports.length, icon: <FileText size={22}/>, color: '#1e3a66' },
+                      { title: 'New Alerts', value: '12', icon: <Bell size={22}/>, color: '#334155' }
                     ].map((card, i) => (
                       <div key={i} style={{
                         background: darkMode ? '#1e1e1e' : '#fff',
@@ -1257,7 +1258,7 @@ const sidebarStyle = {
                       <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '15px', padding: '10px 0' }}>
                         {/* Tusaale ahaan Garaaf fudud oo CSS ah */}
                         {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-                          <div key={i} style={{ flex: 1, backgroundColor: '#5d5fef', height: `${h}%`, borderRadius: '5px 5px 0 0', opacity: 0.8 }}></div>
+                          <div key={i} style={{ flex: 1, backgroundColor: '#0f1f38', height: `${h}%`, borderRadius: '4px 4px 0 0', opacity: 0.9 }}></div>
                         ))}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: '#888', fontSize: '12px' }}>
@@ -1274,7 +1275,7 @@ const sidebarStyle = {
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                           <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Dhaqdhaqaaqii Ugu Dambeeyay</h4>
-                          <button style={{ background: 'none', border: 'none', color: '#5d5fef', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                          <button style={{ background: 'none', border: 'none', color: '#0f1f38', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
                             Arag dhamaan
                           </button>
                         </div>
@@ -1295,14 +1296,15 @@ const sidebarStyle = {
                                 <div style={{ 
                                   width: '40px', 
                                   height: '40px', 
-                                  borderRadius: '10px', 
-                                  backgroundColor: '#5d5fef22', 
+                                  borderRadius: '8px', 
+                                  backgroundColor: '#f1f5f9', 
                                   display: 'flex', 
                                   justifyContent: 'center', 
                                   alignItems: 'center',
-                                  color: '#5d5fef',
-                                  fontWeight: 'bold',
-                                  fontSize: '14px'
+                                  color: '#0f1f38',
+                                  fontWeight: '700',
+                                  fontSize: '14px',
+                                  border: '1px solid #e2e8f0'
                                 }}>
                                   {sarkaal.name.charAt(0)}
                                 </div>

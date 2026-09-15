@@ -3,6 +3,19 @@ import axios from 'axios';
 import FariimahaModal from './FariimahaModal';
 import { useAuthUser, getProfilePicUrl } from './authSync';
 import HRoleOverview from './HRoleOverview';
+import Sidebar from './components/Sidebar';
+import { 
+  colors, 
+  cardStyle, 
+  tableStyle, 
+  tableHeaderStyle, 
+  tableCellStyle, 
+  buttonPrimaryStyle, 
+  buttonSecondaryStyle, 
+  badgeStyle, 
+  borderRadius 
+} from './designSystem';
+import { RotateCw, Printer, ArrowLeft, Users, CheckCircle, Clock } from 'lucide-react';
 
 function Horinta4Dashboard({ user, onLogout }) {
   const authUser = useAuthUser(user);
@@ -15,8 +28,6 @@ function Horinta4Dashboard({ user, onLogout }) {
   
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [medicalHistory, setMedicalHistory] = useState([]);
-
-  // --- STATE-KA EXPAND/COLLAPSE ---
   const [isExpanded, setIsExpanded] = useState(true);
 
   const fetchData = async () => {
@@ -59,178 +70,276 @@ function Horinta4Dashboard({ user, onLogout }) {
 
   const handlePrint = () => window.print();
 
-  // --- DYNAMIC STYLES (Sidebar Control) ---
-  const dynamicSidebarStyle = {
-    width: isExpanded ? '250px' : '70px',
-    background: '#1e3a8a',
-    color: '#bfdbfe',
-    position: 'fixed',
-    height: '100vh',
-    zIndex: 100,
-    transition: 'all 0.3s ease',
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column'
-  };
-
-  const dynamicMainContentStyle = {
-    flex: 1,
-    marginLeft: isExpanded ? '250px' : '70px',
-    padding: '30px',
-    transition: 'all 0.3s ease',
-    minHeight: '100vh',
-    backgroundColor: '#f1f5f9'
-  };
-
   return (
-    <div className="dashboard-container" style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f4f7f9' }}>
-      
-      {/* SIDEBAR */}
-      <aside className="no-print" style={dynamicSidebarStyle}>
-        {/* Toggle Button (☰) */}
-        <div 
-          onClick={() => setIsExpanded(!isExpanded)} 
-          style={{ padding: '18px 20px', cursor: 'pointer', fontSize: '20px', textAlign: isExpanded ? 'right' : 'center', color: '#93c5fd' }}
-        >
-          {isExpanded ? '☰' : '☰'}
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: colors.background }}>
+      <Sidebar
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
+        activeUser={activeUser}
+        activePage={activeTab}
+        setActivePage={setActiveTab}
+        onLogout={handleLogout}
+        showMsgModal={showMsgModal}
+        setShowMsgModal={setShowMsgModal}
+        role="H4"
+      />
+
+      {/* ── MAIN CONTENT ── */}
+      <main style={{
+        flex: 1,
+        padding: '24px 32px',
+        transition: 'all 0.25s ease',
+        minHeight: '100vh',
+        backgroundColor: colors.background,
+        color: colors.text,
+      }} className="main-content">
+        
+        {/* Top Header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px',
+          paddingBottom: '16px',
+          borderBottom: `1px solid ${colors.border}`,
+        }} className="no-print">
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h1 style={{ margin: 0, color: colors.text, fontSize: '22px', fontWeight: '800' }}>
+                Horinta 4aad
+              </h1>
+              <span style={{
+                ...badgeStyle,
+                backgroundColor: colors.primaryLight,
+                color: colors.primary,
+                border: `1px solid ${colors.primaryBorder}`,
+                fontWeight: '700',
+              }}>
+                H4 Division Portal
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0', color: colors.textMuted, fontSize: '13px' }}>
+              Maamulka xogta caafimaadka iyo askarta Horinta 4aad.
+            </p>
+          </div>
+
+          <button
+            onClick={fetchData}
+            style={buttonPrimaryStyle}
+            title="Cusboonaysii Xogta"
+          >
+            <RotateCw size={15} />
+            <span>Refresh Xogta</span>
+          </button>
         </div>
 
-        <div style={{ ...logoArea, padding: isExpanded ? '20px 15px' : '10px' }}>
-          {isExpanded ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img 
-                src={getProfilePicUrl(activeUser.pic || activeUser.profile_pic)}
-                alt="Profile" 
-                style={{ width: '38px', height: '38px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', objectFit: 'cover' }} 
-                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
-              />
-              <div style={{ textAlign: 'left' }}>
-                <h3 style={{ color: '#ffffff', margin: 0, fontSize: '14px', fontWeight: '700' }}>
-                  {activeUser.username || "H4 Officer"}
-                </h3>
-                <p style={{ color: '#93c5fd', fontSize: '11px', margin: '2px 0 0 0', fontWeight: '600' }}>Role: {activeUser.role || 'H4'}</p>
+        {/* HRoleOverview for reports and analytics */}
+        {(activeTab === 'reports' || activeTab === 'analytics') && (
+          <HRoleOverview
+            view={activeTab}
+            pendingQueue={pendingQueue}
+            activeRecords={activeRecords}
+            personnel={personnel}
+            onViewDetails={handleViewDetails}
+          />
+        )}
+
+        {/* ── DASHBOARD TAB ── */}
+        {activeTab === 'dashboard' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Summary Stat Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div style={{
+                ...cardStyle,
+                padding: '16px 20px',
+                borderTop: `3px solid ${colors.primary}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Safka Sugitaanka MO
+                  </span>
+                  <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>
+                    {pendingQueue.length}
+                  </strong>
+                </div>
+                <div style={{ width: '38px', height: '38px', borderRadius: borderRadius.md, backgroundColor: colors.primaryLight, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={18} />
+                </div>
+              </div>
+
+              <div style={{
+                ...cardStyle,
+                padding: '16px 20px',
+                borderTop: `3px solid ${colors.primary}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Baaritaannada Diiwaangashan
+                  </span>
+                  <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>
+                    {activeRecords.length}
+                  </strong>
+                </div>
+                <div style={{ width: '38px', height: '38px', borderRadius: borderRadius.md, backgroundColor: colors.primaryLight, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCircle size={18} />
+                </div>
+              </div>
+
+              <div style={{
+                ...cardStyle,
+                padding: '16px 20px',
+                borderTop: `3px solid ${colors.primary}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div>
+                  <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Wadarta Askarta H4
+                  </span>
+                  <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>
+                    {personnel.length}
+                  </strong>
+                </div>
+                <div style={{ width: '38px', height: '38px', borderRadius: borderRadius.md, backgroundColor: colors.primaryLight, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={18} />
+                </div>
               </div>
             </div>
-          ) : (
-            <h2 style={{ color: '#93c5fd', fontSize: '14px', fontWeight: '700' }}>H4</h2>
-          )}
-        </div>
 
-        <nav style={{ marginTop: '20px' }}>
-          <div onClick={() => setActiveTab('dashboard')} style={activeTab === 'dashboard' ? navActive : navItem}>
-            <span style={{ fontSize: '20px' }}>📊</span> 
-            {isExpanded && <span style={{ marginLeft: '15px' }}>Dashboard</span>}
-          </div>
-          <div onClick={() => setActiveTab('personnel')} style={activeTab === 'personnel' || activeTab === 'history-view' ? navActive : navItem}>
-            <span style={{ fontSize: '20px' }}>👥</span> 
-            {isExpanded && <span style={{ marginLeft: '15px' }}>Xogta Guud</span>}
-          </div>
-          <div onClick={() => setActiveTab('reports')} style={activeTab === 'reports' ? navActive : navItem}><span>📄</span>{isExpanded && <span style={{ marginLeft: '15px' }}>Reports</span>}</div>
-          <div onClick={() => setActiveTab('analytics')} style={activeTab === 'analytics' ? navActive : navItem}><span>📊</span>{isExpanded && <span style={{ marginLeft: '15px' }}>Analytics</span>}</div>
-          <div onClick={() => setShowMsgModal(true)} style={showMsgModal ? navActive : navItem}>
-            <span style={{ fontSize: '20px' }}>💬</span> 
-            {isExpanded && <span style={{ marginLeft: '15px' }}>Fariimaha</span>}
-          </div>
-        </nav>
-
-        <button 
-          style={{ 
-            ...logoutBtn, 
-            width: isExpanded ? '200px' : '45px', 
-            left: isExpanded ? '25px' : '12px' 
-          }} 
-          onClick={handleLogout}
-        >
-          {isExpanded ? '🚪 Logout' : '🚪'}
-        </button>
-      </aside>
-
-      {/* MAIN CONTENT */}
-      <main style={dynamicMainContentStyle} className="main-content">
-        {(activeTab === 'reports' || activeTab === 'analytics') && <HRoleOverview view={activeTab} pendingQueue={pendingQueue} activeRecords={activeRecords} personnel={personnel} onViewDetails={handleViewDetails} />}
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }} className="no-print">
-            <h1 style={{ margin: 0, color: '#1e293b', fontSize: '22px', fontWeight: '700' }}>H4 Dashboard</h1>
-            <button onClick={fetchData} style={refreshBtn}>🔄 Refresh H4 Data</button>
-        </div>
-
-        {/* --- DASHBOARD TAB --- */}
-        {activeTab === 'dashboard' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-              
-              {/* 1. Safka MO (Pending) */}
-              <div style={{ background: 'white', padding: '25px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0' }}>
-                <h3 style={{ color: '#1e293b', marginTop: 0, fontWeight: '600' }}>Safka MO (Pending)</h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            {/* 1. Safka MO (Pending) */}
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>
+                  Safka Sugitaanka MO (Pending)
+                </h3>
+                <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                  Wadarta: <strong>{pendingQueue.length}</strong>
+                </span>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
                   <thead>
-                    <tr style={{ background: '#1d4ed8', color: 'white', textAlign: 'left' }}>
-                      <th style={thStyle}>Pic</th><th style={thStyle}>ID</th><th style={thStyle}>Name</th><th style={thStyle}>Action</th>
+                    <tr style={tableHeaderStyle}>
+                      <th style={tableHeaderStyle}>Sawir</th>
+                      <th style={tableHeaderStyle}>Sarkaal ID</th>
+                      <th style={tableHeaderStyle}>Magaca</th>
+                      <th style={tableHeaderStyle}>Xaaladda</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pendingQueue.filter(item => item.status === 'Pending').map(item => (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
-                        <td style={tdStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%' }} alt="profile" /></td>
-                        <td style={tdStyle}>{item.sarkaal_id}</td>
-                        <td style={tdStyle}>{item.name}</td>
-                        <td style={{ ...tdStyle, color: '#e67e22', fontWeight: 'bold' }}>Pending</td>
+                      <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                        <td style={tableCellStyle}>
+                          <img 
+                            src={`http://localhost:5000/${item.profile_pic}`} 
+                            width="34" 
+                            height="34" 
+                            style={{ borderRadius: '50%', objectFit: 'cover', border: `1px solid ${colors.border}` }} 
+                            alt="profile"
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                          />
+                        </td>
+                        <td style={{ ...tableCellStyle, fontWeight: '600' }}>{item.sarkaal_id}</td>
+                        <td style={tableCellStyle}>{item.name}</td>
+                        <td style={tableCellStyle}>
+                          <span style={{
+                            ...badgeStyle,
+                            backgroundColor: colors.warningBg,
+                            color: colors.warning,
+                            border: `1px solid ${colors.warningBorder}`,
+                          }}>
+                            Pending MO
+                          </span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                {pendingQueue.length === 0 && (
+                  <div style={{ padding: '24px', textAlign: 'center', color: colors.textMuted, fontSize: '13px' }}>
+                    Safka MO waa maran yahay.
+                  </div>
+                )}
               </div>
+            </div>
 
-              {/* 2. Warbixinnada Baaritaanka (Active Records) */}
-              <div style={{ background: 'white', padding: '25px', borderRadius: '12px', marginTop: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0' }}>
-                <h3 style={{ color: '#1e293b', fontWeight: '600' }}>Warbixinnada Baaritaanka (Active Records)</h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            {/* 2. Warbixinnada Baaritaanka (Active Records) */}
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>
+                  Diiwaanka Baaritaanka ee Firfircoon
+                </h3>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
                   <thead>
-                    <tr style={{ background: '#1d4ed8', color: 'white' }}>
-                      <th style={thStyle}>Pic</th><th style={thStyle}>ID</th><th style={thStyle}>Magaca</th><th style={thStyle}>Limitation Type</th><th style={thStyle}>Remaining</th><th style={thStyle}>Status</th>
+                    <tr style={tableHeaderStyle}>
+                      <th style={tableHeaderStyle}>Sawir</th>
+                      <th style={tableHeaderStyle}>ID</th>
+                      <th style={tableHeaderStyle}>Magaca</th>
+                      <th style={tableHeaderStyle}>Nooca Xaddidaadda</th>
+                      <th style={tableHeaderStyle}>Maalmaha Hadhay</th>
+                      <th style={tableHeaderStyle}>Xaaladda</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeRecords.reduce((acc, current) => {
-                      // SHAQADA 1: Iska hubi haddii qofku hore u jiray (Find duplicate)
                       const xogtaHore = acc.find(item => item.sarkaal_id === current.sarkaal_id);
-                      
                       if (xogtaHore) {
-                        // SHAQADA 2: Haddii uu jiro, maalmaha isku dar
                         xogtaHore.days = parseInt(xogtaHore.days) + parseInt(current.days);
                         return acc;
                       } else {
                         return [...acc, { ...current }];
                       }
                     }, []).map((report) => {
-                      // Logic-ga Countdown-ka ee 24 saac
                       const maanta = new Date();
                       const taariikhdaLaQoray = new Date(report.created_at);
                       const maalmahaIskuDhafan = parseInt(report.days);
-
                       const dhamaadka = new Date(taariikhdaLaQoray);
                       dhamaadka.setDate(dhamaadka.getDate() + maalmahaIskuDhafan);
-
                       const farqigaTime = dhamaadka - maanta;
                       const maalmahaHadhay = Math.ceil(farqigaTime / (1000 * 60 * 60 * 24));
-
-                      // Auto-delete haddii maalmuhu dhamaadaan
                       if (maalmahaHadhay <= 0) return null;
 
                       return (
-                        <tr key={report.id} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={tdStyle}><img src={`http://localhost:5000/${report.profile_pic}`} width="40" height="40" style={{borderRadius: '50%'}} alt="profile" /></td>
-                          <td style={tdStyle}>{report.sarkaal_id}</td>
-                          <td style={tdStyle}>{report.name}</td>
-                          <td style={tdStyle}><b>{report.limitation}</b></td>
-                          <td style={tdStyle}>
-                            <span style={{ 
-                              color: maalmahaHadhay <= 1 ? 'red' : '#27ae60', 
-                              fontWeight: 'bold' 
+                        <tr key={report.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                          <td style={tableCellStyle}>
+                            <img 
+                              src={`http://localhost:5000/${report.profile_pic}`} 
+                              width="34" 
+                              height="34" 
+                              style={{ borderRadius: '50%', objectFit: 'cover', border: `1px solid ${colors.border}` }} 
+                              alt="profile"
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                            />
+                          </td>
+                          <td style={{ ...tableCellStyle, fontWeight: '600' }}>{report.sarkaal_id}</td>
+                          <td style={tableCellStyle}>{report.name}</td>
+                          <td style={tableCellStyle}><strong>{report.limitation}</strong></td>
+                          <td style={tableCellStyle}>
+                            <span style={{
+                              ...badgeStyle,
+                              backgroundColor: maalmahaHadhay <= 1 ? colors.errorBg : colors.primaryLight,
+                              color: maalmahaHadhay <= 1 ? colors.error : colors.primary,
+                              border: `1px solid ${maalmahaHadhay <= 1 ? colors.errorBorder : colors.primaryBorder}`,
+                              fontWeight: '700',
                             }}>
-                              {maalmahaHadhay} Days
+                              {maalmahaHadhay} Maalmood
                             </span>
                           </td>
-                          <td style={tdStyle}><span style={{ color: '#27ae60' }}>● Completed</span></td>
+                          <td style={tableCellStyle}>
+                            <span style={{ ...badgeStyle, backgroundColor: colors.successBg, color: colors.success, border: `1px solid ${colors.successBorder}` }}>
+                              Completed
+                            </span>
+                          </td>
                         </tr>
                       );
                     })}
@@ -238,31 +347,71 @@ function Horinta4Dashboard({ user, onLogout }) {
                 </table>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-        {/* --- XOGTA GUUD TAB --- */}
-        {activeTab === 'personnel' && (
-          <div style={cardStyle}>
-            <h2 style={{ color: '#1a2a6c', marginBottom: '20px' }}>Xogta Guud ee Askarta Horinta 4aad</h2>
+        {/* ── XOGTA GUUD (PERSONNEL) TAB ── */}
+        {(activeTab === 'personnel' || activeTab === 'askar') && (
+          <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, color: colors.text, fontSize: '16px', fontWeight: '700' }}>
+                Xogta Guud ee Askarta Horinta 4aad
+              </h2>
+              <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                Wadarta: <strong>{personnel.length}</strong>
+              </span>
+            </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={tableStyle}>
-                <thead style={darkThead}>
-                  <tr>
-                    <th style={pad15}>Pic</th><th style={pad15}>ID</th><th style={pad15}>Name</th><th style={pad15}>Culays</th><th style={pad15}>Dhiiga</th><th style={pad15}>Dhirirka</th><th style={pad15}>Goobta Dhalashada</th><th style={pad15}>Taariikhda Dhalashada</th> <th style={pad15}>Action</th>
+                <thead>
+                  <tr style={tableHeaderStyle}>
+                    <th style={tableHeaderStyle}>Sawir</th>
+                    <th style={tableHeaderStyle}>Sarkaal ID</th>
+                    <th style={tableHeaderStyle}>Magaca</th>
+                    <th style={tableHeaderStyle}>Culayska</th>
+                    <th style={tableHeaderStyle}>Dhiigga</th>
+                    <th style={tableHeaderStyle}>Dhirirka</th>
+                    <th style={tableHeaderStyle}>Goobta Dhalashada</th>
+                    <th style={tableHeaderStyle}>Taariikhda Dhalashada</th>
+                    <th style={tableHeaderStyle}>Ficil</th>
                   </tr>
                 </thead>
                 <tbody>
                   {personnel.map(p => (
-                    <tr key={p.id} style={trStyle}>
-                      <td style={pad15}><img src={`http://localhost:5000/${p.profile_pic}`} width="40" height="40" style={{borderRadius:'5px'}} alt=""/></td>
-                      <td style={pad15}>{p.sarkaal_id}</td>
-                      <td style={pad15}>{p.name}</td>
-                      <td style={pad15}>{p.culays} kg</td>
-                      <td style={{ ...pad15, color: 'red', fontWeight: 'bold' }}>{p.dhiiga}</td>
-                      <td style={pad15}>{p.dhirirka} cm</td>
-                      <td style={pad15}>{p.goobta_dhalashada}</td>
-                      <td style={pad15}>{new Date(p.tariikhda_dhalashada).toLocaleDateString()}</td>
-                      <td style={pad15}><button onClick={() => handleViewDetails(p)} style={viewBtn}>View</button></td>
+                    <tr key={p.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                      <td style={tableCellStyle}>
+                        <img 
+                          src={`http://localhost:5000/${p.profile_pic}`} 
+                          width="34" 
+                          height="34" 
+                          style={{ borderRadius: borderRadius.sm, objectFit: 'cover', border: `1px solid ${colors.border}` }} 
+                          alt=""
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                        />
+                      </td>
+                      <td style={{ ...tableCellStyle, fontWeight: '600' }}>{p.sarkaal_id}</td>
+                      <td style={tableCellStyle}>{p.name}</td>
+                      <td style={tableCellStyle}>{p.culays} kg</td>
+                      <td style={tableCellStyle}>
+                        <span style={{ ...badgeStyle, backgroundColor: '#fef2f2', color: colors.error, border: '1px solid #fecdd3' }}>
+                          {p.dhiiga}
+                        </span>
+                      </td>
+                      <td style={tableCellStyle}>{p.dhirirka} cm</td>
+                      <td style={tableCellStyle}>{p.goobta_dhalashada}</td>
+                      <td style={tableCellStyle}>{new Date(p.tariikhda_dhalashada).toLocaleDateString()}</td>
+                      <td style={tableCellStyle}>
+                        <button
+                          onClick={() => handleViewDetails(p)}
+                          style={{
+                            ...buttonSecondaryStyle,
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                          }}
+                        >
+                          View History
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -271,99 +420,124 @@ function Horinta4Dashboard({ user, onLogout }) {
           </div>
         )}
 
-        {/* --- HISTORY VIEW --- */}
+        {/* ── MEDICAL HISTORY VIEW ── */}
         {activeTab === 'history-view' && selectedStaff && (
-          <div>
-            <button onClick={() => setActiveTab('personnel')} style={{ marginBottom: '15px', border: 'none', background: 'none', cursor: 'pointer', color: '#1a2a6c', fontWeight: 'bold' }}>⬅ Ka Noqo</button>
-            <div style={profileHeaderCard}>
-              <img src={`http://localhost:5000/${selectedStaff.profile_pic}`} style={profileImageLg} alt=""/>
-              <div style={{ marginLeft: '25px' }}>
-                <h1 style={{ margin: 0, color: '#1a2a6c' }}>{selectedStaff.name}</h1>
-                <p style={{ margin: '5px 0' }}>Sarkaal ID: <strong>{selectedStaff.sarkaal_id}</strong></p>
-                <span style={visitBadge}>Visits Count: {medicalHistory.length}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <button
+              onClick={() => setActiveTab('personnel')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                color: colors.primary,
+                fontWeight: '700',
+                fontSize: '14px',
+                padding: 0,
+              }}
+            >
+              <ArrowLeft size={16} />
+              <span>Ka Noqo (Ku noqo Liiska)</span>
+            </button>
+
+            <div style={{
+              ...cardStyle,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '24px',
+              padding: '24px',
+            }}>
+              <img 
+                src={`http://localhost:5000/${selectedStaff.profile_pic}`} 
+                style={{
+                  width: '90px',
+                  height: '90px',
+                  borderRadius: borderRadius.lg,
+                  objectFit: 'cover',
+                  border: `2px solid ${colors.border}`,
+                }} 
+                alt=""
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+              />
+              <div>
+                <h2 style={{ margin: 0, color: colors.text, fontSize: '20px', fontWeight: '800' }}>
+                  {selectedStaff.name}
+                </h2>
+                <p style={{ margin: '4px 0 10px', color: colors.textMuted, fontSize: '13px' }}>
+                  Sarkaal ID: <strong>{selectedStaff.sarkaal_id}</strong>
+                </p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <span style={{ ...badgeStyle, backgroundColor: colors.primaryLight, color: colors.primary, border: `1px solid ${colors.primaryBorder}` }}>
+                    Dhiigga: {selectedStaff.dhiiga}
+                  </span>
+                  <span style={{ ...badgeStyle, backgroundColor: '#f1f5f9', color: colors.textSecondary, border: `1px solid ${colors.border}` }}>
+                    Diiwaannada: {medicalHistory.length}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div style={{ ...cardStyle, marginTop: '20px' }}>
-              <h3>Taariikhda Baaritaanada</h3>
-              <table style={tableStyle}>
-                <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
-                    <th style={pad15}>Diagnosis</th><th style={pad15}>Limitation</th><th style={pad15}>Days</th><th style={pad15}>Date</th> <th style={pad15}>Referrals</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {medicalHistory.map((h, i) => (
-                    <tr key={i} style={trStyle}>
-                      <td style={{ ...pad15, color: '#e74c3c', fontWeight: 'bold' }}>{h.diagnosis}</td>
-                      <td style={pad15}>{h.limitations || 'N/A'}</td>
-                      <td style={pad15}><span style={daysLabel}>{h.days} Days</span></td>
-                      <td style={pad15}>{new Date(h.created_at).toLocaleDateString()}</td>
-                     <td style={pad15}>
-  {h.referrals === 'Yes' ? (
-    <span style={{ 
-      color: '#5bc0de', 
-      fontWeight: 'bold', 
-      
-      padding: '4px 10px', 
-      borderRadius: '12px',
-      fontSize: '14px' 
-    }}>
-      Yes
-    </span>
-  ) : (
-    <span style={{ 
-      color: '#5cb85c', 
-      fontWeight: 'bold', 
-   
-      padding: '4px 10px', 
-      borderRadius: '12px',
-      fontSize: '14px' 
-    }}>
-      No
-    </span>
-  )}
-</td>
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>
+                  Taariikhda Baaritaannada Caafimaad
+                </h3>
+                <button
+                  onClick={handlePrint}
+                  style={buttonPrimaryStyle}
+                  className="no-print"
+                >
+                  <Printer size={15} />
+                  <span>Daabac Warbixinta</span>
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr style={tableHeaderStyle}>
+                      <th style={tableHeaderStyle}>Taariikh</th>
+                      <th style={tableHeaderStyle}>Baaritaanka (Diagnosis)</th>
+                      <th style={tableHeaderStyle}>Xaddidaadda</th>
+                      <th style={tableHeaderStyle}>Maalmood</th>
+                      <th style={tableHeaderStyle}>Referrals</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              <button onClick={handlePrint} style={{ ...printBtn, marginTop: '25px' }} className="no-print">🖨️ Daabac Warbixinta</button>
+                  </thead>
+                  <tbody>
+                    {medicalHistory.map((h, i) => (
+                      <tr key={i} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                        <td style={tableCellStyle}>{new Date(h.created_at).toLocaleDateString()}</td>
+                        <td style={{ ...tableCellStyle, fontWeight: '600' }}>{h.diagnosis}</td>
+                        <td style={tableCellStyle}>{h.limitations || 'None'}</td>
+                        <td style={tableCellStyle}>
+                          <span style={{ ...badgeStyle, backgroundColor: colors.primaryLight, color: colors.primary, border: `1px solid ${colors.primaryBorder}` }}>
+                            {h.days} Maalmood
+                          </span>
+                        </td>
+                        <td style={tableCellStyle}>
+                          <span style={{
+                            ...badgeStyle,
+                            backgroundColor: h.referrals === 'Yes' ? colors.primaryLight : '#f1f5f9',
+                            color: h.referrals === 'Yes' ? colors.primary : colors.textMuted,
+                            border: `1px solid ${h.referrals === 'Yes' ? colors.primaryBorder : colors.border}`,
+                          }}>
+                            {h.referrals === 'Yes' ? 'Referral: Haa' : 'Maya'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
       </main>
 
-      <style>{`
-        @media print { 
-          .no-print { display: none !important; } 
-          .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; } 
-        }
-      `}</style>
-      {/* Standardized Fariimaha Modal */}
       <FariimahaModal isOpen={showMsgModal} onClose={() => setShowMsgModal(false)} currentUser={activeUser} />
     </div>
   );
 }
 
-// --- STYLES ---
-const logoArea = { padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '4px' };
-const navItem = { padding: '10px 14px', margin: '2px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: '#bfdbfe', borderRadius: '8px', transition: '0.2s', fontSize: '14px', fontWeight: '500' };
-const navActive = { ...navItem, backgroundColor: '#2563eb', color: '#ffffff', fontWeight: '600' };
-const cardStyle = { backgroundColor: 'white', padding: '25px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse' };
-const darkThead = { backgroundColor: '#1d4ed8', color: 'white' };
-const thRow = { textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' };
-const trStyle = { borderBottom: '1px solid #f1f5f9' };
-const pad15 = { padding: '12px 16px' };
-const viewBtn = { backgroundColor: '#1d4ed8', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' };
-const refreshBtn = { backgroundColor: '#1d4ed8', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' };
-const profileHeaderCard = { backgroundColor: 'white', padding: '25px 30px', borderRadius: '12px', display: 'flex', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0' };
-const profileImageLg = { width: '120px', height: '120px', borderRadius: '12px', objectFit: 'cover', border: '3px solid #dbeafe' };
-const visitBadge = { backgroundColor: '#dbeafe', padding: '5px 14px', borderRadius: '20px', fontSize: '13px', color: '#1d4ed8', fontWeight: '600', marginTop: '10px', display: 'inline-block' };
-const daysLabel = { backgroundColor: '#fef3c7', color: '#92400e', padding: '4px 10px', borderRadius: '6px', fontWeight: '600', fontSize: '13px' };
-const printBtn = { backgroundColor: '#1d4ed8', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' };
-const logoutBtn = { padding: '10px 14px', background: 'rgba(239,68,68,0.15)', color: '#fca5a5', border: 'none', borderRadius: '8px', cursor: 'pointer', margin: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '600', transition: '0.2s', width: 'calc(100% - 16px)' };
-const thStyle = { padding: '12px 16px', fontWeight: '600', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' };
-const tdStyle = { padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '14px', color: '#1e293b' };
 export default Horinta4Dashboard;

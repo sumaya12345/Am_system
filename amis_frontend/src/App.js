@@ -11,6 +11,7 @@ import Horinta3 from './Horinta3';
 import Horinta4 from './Horinta4'; 
 import Urur from './Urur'; 
 import MedicalDashboard from './MedicalDashboard'; 
+import { initGlobalTheme } from './designSystem';
 
 // Global Axios Request Interceptor
 axios.interceptors.request.use((config) => {
@@ -56,6 +57,7 @@ function App() {
 
   // Popstate event listener for browser navigation (Back/Forward)
   useEffect(() => {
+    initGlobalTheme();
     const handlePopState = () => {
       setCurrentPath(window.location.pathname);
     };

@@ -7,8 +7,9 @@ import {
   Settings,
   MessageSquare,
   LogOut,
-  Menu,
-  X,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
 } from 'lucide-react';
 import {
   sidebarStyle,
@@ -18,6 +19,7 @@ import {
   navItemStyle,
   colors,
   typography,
+  getColors,
 } from '../designSystem';
 import ProfileImage from '../ProfileImage';
 
@@ -30,140 +32,246 @@ export default function Sidebar({
   onLogout,
   showMsgModal,
   setShowMsgModal,
-  darkMode,
-  setDarkMode,
   role,
+  darkMode = false,
 }) {
+  const themeColors = getColors(darkMode);
   const currentSidebarStyle = isExpanded ? sidebarStyle : sidebarCollapsedStyle;
 
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'reports',   icon: FileText,        label: 'Reports'   },
-    { id: 'askar',     icon: Users,           label: 'Xogta Askar' },
+    { id: 'reports',   icon: FileText,        label: 'Warbixinada' },
+    { id: 'askar',     icon: Users,           label: 'Xogta Askarta' },
     { id: 'analytics', icon: PieChart,        label: 'Analytics' },
-    { id: 'settings',  icon: Settings,        label: 'Settings'  },
+    { id: 'settings',  icon: Settings,        label: 'Habaynta' },
   ];
 
-  const msgItem = { id: 'messages', icon: MessageSquare, label: 'Fariimaha', isModal: true };
-
-  const handleNavClick = (item) => {
-    if (item.isModal) {
-      setShowMsgModal(true);
-    } else {
-      setActivePage(item.id);
-    }
+  const handleNavClick = (id) => {
+    setActivePage(id);
   };
 
-  const isItemActive = (item) => item.isModal ? showMsgModal : activePage === item.id;
-
-  const getNavStyle = (isActive) => ({
-    ...navItemStyle(isActive),
-    margin: isExpanded ? '2px 8px' : '2px 8px',
-  });
+  const isNavActive = (id) => activePage === id;
 
   const hoverEnter = (e, isActive) => {
     if (!isActive) {
-      e.currentTarget.style.backgroundColor = colors.sidebarHover;
-      e.currentTarget.style.color = colors.sidebarTextActive;
+      e.currentTarget.style.backgroundColor = themeColors.sidebarHover;
+      e.currentTarget.style.color = themeColors.sidebarTextActive;
     }
   };
+
   const hoverLeave = (e, isActive) => {
     if (!isActive) {
       e.currentTarget.style.backgroundColor = 'transparent';
-      e.currentTarget.style.color = colors.sidebarText;
+      e.currentTarget.style.color = themeColors.sidebarText;
     }
   };
 
   return (
-    <aside style={currentSidebarStyle}>
-      {/* ── Profile Section ── */}
-      <div style={profileSectionStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+    <aside style={currentSidebarStyle} className="no-print">
+      {/* ── Brand / Header ── */}
+      <div style={{
+        padding: isExpanded ? '18px 16px 14px' : '18px 8px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isExpanded ? 'space-between' : 'center',
+        borderBottom: `1px solid ${themeColors.sidebarBorder}`,
+      }}>
+        {isExpanded ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              backgroundColor: darkMode ? '#2563eb' : '#16365c',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              flexShrink: 0,
+            }}>
+              <Shield size={18} strokeWidth={2.2} />
+            </div>
+            <div>
+              <div style={{
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#ffffff',
+                letterSpacing: '0.04em',
+                lineHeight: 1.1,
+              }}>
+                AMIS SYSTEM
+              </div>
+              <div style={{
+                fontSize: '10px',
+                color: darkMode ? '#60a5fa' : '#60a5fa',
+                fontWeight: '600',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                marginTop: '3px',
+              }}>
+                Medical Portal
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            backgroundColor: darkMode ? '#2563eb' : '#16365c',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ffffff',
+          }}>
+            <Shield size={18} strokeWidth={2.2} />
+          </div>
+        )}
+
+        {isExpanded && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            title="Collapse sidebar"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: themeColors.sidebarText,
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              borderRadius: '4px',
+            }}
+          >
+            <ChevronLeft size={16} />
+          </button>
+        )}
+      </div>
+
+      {/* ── User Profile Section ── */}
+      <div style={{...profileSectionStyle, borderBottom: `1px solid ${themeColors.sidebarBorder}`}}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden', minWidth: 0 }}>
           <ProfileImage
             pic={activeUser?.pic || activeUser?.profile_pic}
             alt="Profile"
             style={profileImageStyle}
           />
           {isExpanded && (
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{ overflow: 'hidden', minWidth: 0 }}>
               <div style={{
-                fontSize: typography.fontSize.base,
-                fontWeight: typography.fontWeight.bold,
-                color: colors.sidebarTextActive,
+                fontSize: typography.fontSize.sm,
+                fontWeight: typography.fontWeight.semibold,
+                color: themeColors.sidebarTextActive,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}>
-                {activeUser?.username || `${role} Officer`}
+                {activeUser?.username || `${role || 'Officer'}`}
               </div>
               <div style={{
-                fontSize: typography.fontSize.xs,
-                color: '#93c5fd',
-                fontWeight: typography.fontWeight.semibold,
-                marginTop: '2px',
+                fontSize: '11px',
+                color: darkMode ? '#60a5fa' : '#93c5fd',
+                fontWeight: typography.fontWeight.medium,
+                marginTop: '1px',
               }}>
-                {activeUser?.role || role}
+                {activeUser?.role || role || 'Officer'}
               </div>
             </div>
           )}
         </div>
-        <div
-          onClick={() => setIsExpanded(!isExpanded)}
-          style={{ cursor: 'pointer', color: colors.sidebarText, flexShrink: 0, padding: '4px' }}
-        >
-          {isExpanded ? <X size={18} /> : <Menu size={18} />}
-        </div>
+
+        {!isExpanded && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(true)}
+            title="Expand sidebar"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: themeColors.sidebarText,
+              padding: '2px',
+              marginTop: '6px',
+            }}
+          >
+            <ChevronRight size={14} />
+          </button>
+        )}
       </div>
 
-      {/* ── Navigation ── */}
+      {/* ── Navigation Section ── */}
       <nav style={{ flex: 1, padding: '12px 0', overflowY: 'auto' }}>
         {navItems.map((item) => {
-          const active = isItemActive(item);
+          const active = isNavActive(item.id);
           return (
             <div
               key={item.id}
-              onClick={() => handleNavClick(item)}
-              style={getNavStyle(active)}
+              onClick={() => handleNavClick(item.id)}
+              style={{
+                ...navItemStyle(active),
+                justifyContent: isExpanded ? 'flex-start' : 'center',
+                padding: isExpanded ? '9px 12px' : '9px 0',
+              }}
               onMouseEnter={(e) => hoverEnter(e, active)}
               onMouseLeave={(e) => hoverLeave(e, active)}
+              title={!isExpanded ? item.label : undefined}
             >
-              <item.icon size={18} style={{ flexShrink: 0 }} />
-              {isExpanded && <span>{item.label}</span>}
+              <item.icon size={17} style={{ flexShrink: 0 }} />
+              {isExpanded && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>}
             </div>
           );
         })}
-
-        {/* Messages */}
-        {(() => {
-          const active = isItemActive(msgItem);
-          return (
-            <div
-              onClick={() => handleNavClick(msgItem)}
-              style={getNavStyle(active)}
-              onMouseEnter={(e) => hoverEnter(e, active)}
-              onMouseLeave={(e) => hoverLeave(e, active)}
-            >
-              <msgItem.icon size={18} style={{ flexShrink: 0 }} />
-              {isExpanded && <span>{msgItem.label}</span>}
-            </div>
-          );
-        })()}
       </nav>
 
-      {/* ── Bottom: Logout ── */}
-      <div style={{ padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+      {/* ── Bottom Section: Messages & Logout ── */}
+      <div style={{
+        padding: '10px 0 14px',
+        borderTop: `1px solid ${themeColors.sidebarBorder}`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+      }}>
+        {/* Messages Action */}
+        <div
+          onClick={() => setShowMsgModal && setShowMsgModal(true)}
+          style={{
+            ...navItemStyle(showMsgModal),
+            justifyContent: isExpanded ? 'flex-start' : 'center',
+            padding: isExpanded ? '9px 12px' : '9px 0',
+          }}
+          onMouseEnter={(e) => hoverEnter(e, showMsgModal)}
+          onMouseLeave={(e) => hoverLeave(e, showMsgModal)}
+          title={!isExpanded ? 'Fariimaha' : undefined}
+        >
+          <MessageSquare size={17} style={{ flexShrink: 0 }} />
+          {isExpanded && <span>Fariimaha</span>}
+        </div>
+
+        {/* Logout Action */}
         <div
           onClick={onLogout}
           style={{
             ...navItemStyle(false),
-            margin: '2px 8px',
-            color: '#fca5a5',
+            color: '#f87171',
+            justifyContent: isExpanded ? 'flex-start' : 'center',
+            padding: isExpanded ? '9px 12px' : '9px 0',
+            borderLeft: '3px solid transparent',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.2)'; e.currentTarget.style.color = '#fca5a5'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#fca5a5'; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)';
+            e.currentTarget.style.color = '#fca5a5';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.color = '#f87171';
+          }}
+          title={!isExpanded ? 'Logout' : undefined}
         >
-          <LogOut size={18} style={{ flexShrink: 0 }} />
-          {isExpanded && <span style={{ fontWeight: '600' }}>Logout</span>}
+          <LogOut size={17} style={{ flexShrink: 0 }} />
+          {isExpanded && <span style={{ fontWeight: typography.fontWeight.semibold }}>Logout</span>}
         </div>
       </div>
     </aside>

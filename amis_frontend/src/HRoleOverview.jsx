@@ -1,12 +1,21 @@
 import React from 'react';
-
-const cardStyle = {
-  background: '#fff',
-  border: '1px solid #edf2f7',
-  borderRadius: '14px',
-  boxShadow: '0 5px 18px rgba(26, 42, 108, 0.06)',
-  padding: '22px'
-};
+import { 
+  colors, 
+  cardStyle, 
+  tableStyle, 
+  tableHeaderStyle, 
+  tableCellStyle, 
+  typography, 
+  borderRadius,
+  badgeStyle
+} from './designSystem';
+import { 
+  FileText, 
+  Users, 
+  CheckCircle, 
+  AlertCircle, 
+  ArrowUpRight 
+} from 'lucide-react';
 
 export default function HRoleOverview({ view, pendingQueue, activeRecords, personnel, onViewDetails }) {
   const flaggedPersonnel = personnel.filter((staff) => activeRecords
@@ -15,41 +24,135 @@ export default function HRoleOverview({ view, pendingQueue, activeRecords, perso
 
   if (view === 'reports') {
     return (
-      <section style={cardStyle}>
-        <h2 style={{ color: '#1a2a6c', marginTop: 0 }}>Reports</h2>
-        {flaggedPersonnel.length > 0 && <div style={{ ...cardStyle, marginBottom: '18px', borderLeft: '4px solid #e74c3c', background: '#fff8f8' }}>
-          <strong style={{ color: '#c53030' }}>Notifications</strong>
-          {flaggedPersonnel.map((staff) => <button key={staff.id} onClick={() => onViewDetails(staff)} style={{ display: 'block', marginTop: '8px', padding: 0, border: 0, background: 'transparent', color: '#c53030', cursor: 'pointer' }}>Sarkaalka {staff.name} wuxuu gaaray 45 maalmood.</button>)}
-        </div>}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '22px' }}>
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Flagged Alert Banner */}
+        {flaggedPersonnel.length > 0 && (
+          <div style={{
+            ...cardStyle,
+            padding: '14px 18px',
+            backgroundColor: '#fff1f2',
+            border: '1px solid #fecdd3',
+            borderLeft: `4px solid ${colors.error}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: colors.error, fontWeight: '700', fontSize: '13.5px' }}>
+              <AlertCircle size={17} />
+              <span>Ogeysiis: Saraakiisha Gaaray 45 Maalmood ee Istiraxada</span>
+            </div>
+            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {flaggedPersonnel.map((staff) => (
+                <button
+                  key={staff.id}
+                  onClick={() => onViewDetails(staff)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '4px 0',
+                    border: 0,
+                    background: 'transparent',
+                    color: colors.error,
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    textAlign: 'left',
+                  }}
+                >
+                  <ArrowUpRight size={14} />
+                  <span>Sarkaalka <strong>{staff.name}</strong> wuxuu gaaray ama dhaafay 45 maalmood.</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Metric Overview Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
           {[
-            ['Pending', pendingQueue.length, '#fdbb2d'],
-            ['Processed', activeRecords.length, '#5d5fef'],
-            ['Personnel', personnel.length, '#27ae60'],
-            ['Referred', activeRecords.filter((record) => record.referrals === 'Yes').length, '#e74c3c']
-          ].map(([label, value, color]) => (
-            <div key={label} style={{ ...cardStyle, padding: '16px', borderTop: `4px solid ${color}` }}>
-              <span style={{ color: '#718096', fontSize: '12px', fontWeight: '700' }}>{label}</span>
-              <strong style={{ display: 'block', marginTop: '8px', color: '#1a2a6c', fontSize: '26px' }}>{value}</strong>
+            { label: 'Safka Sugaya', value: pendingQueue.length, icon: AlertCircle },
+            { label: 'La Falanqeeyay', value: activeRecords.length, icon: CheckCircle },
+            { label: 'Wadarta Askarta', value: personnel.length, icon: Users },
+            { label: 'La Gudbiyey (Referral)', value: activeRecords.filter((r) => r.referrals === 'Yes').length, icon: FileText }
+          ].map((item) => (
+            <div key={item.label} style={{
+              ...cardStyle,
+              padding: '16px',
+              borderTop: `3px solid ${colors.primary}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div>
+                <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {item.label}
+                </span>
+                <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>
+                  {item.value}
+                </strong>
+              </div>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: borderRadius.md,
+                backgroundColor: colors.primaryLight,
+                color: colors.primary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <item.icon size={18} />
+              </div>
             </div>
           ))}
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr style={{ background: '#1a2a6c', color: '#fff', textAlign: 'left' }}>
-              {['Date', 'Name', 'ID', 'Diagnosis', 'Limitation', 'Days', 'Referral'].map((heading) => <th key={heading} style={{ padding: '12px' }}>{heading}</th>)}
-            </tr></thead>
-            <tbody>{activeRecords.map((record) => <tr key={record.id} style={{ borderBottom: '1px solid #edf2f7' }}>
-              <td style={{ padding: '12px' }}>{record.created_at ? new Date(record.created_at).toLocaleDateString() : '-'}</td>
-              <td style={{ padding: '12px' }}>{record.name || '-'}</td>
-              <td style={{ padding: '12px' }}>{record.sarkaal_id || '-'}</td>
-              <td style={{ padding: '12px' }}>{record.diagnosis || '-'}</td>
-              <td style={{ padding: '12px' }}>{record.limitation || '-'}</td>
-              <td style={{ padding: '12px' }}>{record.days || 0}</td>
-              <td style={{ padding: '12px' }}>{record.referrals || 'No'}</td>
-            </tr>)}</tbody>
-          </table>
-          {activeRecords.length === 0 && <div style={{ padding: '35px', color: '#718096', textAlign: 'center' }}>No reports available.</div>}
+
+        {/* Clean Reports Table */}
+        <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>
+              Diiwaanka Baaritaannada
+            </h3>
+            <span style={{ fontSize: '12px', color: colors.textMuted }}>
+              Wadarta: <strong>{activeRecords.length}</strong>
+            </span>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr style={tableHeaderStyle}>
+                  {['Taariikh', 'Magaca', 'Sarkaal ID', 'Baaritaanka', 'Xaddidaadda', 'Maalmood', 'Referral'].map((heading) => (
+                    <th key={heading} style={tableHeaderStyle}>{heading}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {activeRecords.map((record) => (
+                  <tr key={record.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                    <td style={tableCellStyle}>{record.created_at ? new Date(record.created_at).toLocaleDateString() : '-'}</td>
+                    <td style={{ ...tableCellStyle, fontWeight: '600', color: colors.text }}>{record.name || '-'}</td>
+                    <td style={tableCellStyle}>{record.sarkaal_id || '-'}</td>
+                    <td style={tableCellStyle}>{record.diagnosis || '-'}</td>
+                    <td style={tableCellStyle}>{record.limitation || '-'}</td>
+                    <td style={{ ...tableCellStyle, fontWeight: '700' }}>{record.days || 0}</td>
+                    <td style={tableCellStyle}>
+                      <span style={{
+                        ...badgeStyle,
+                        backgroundColor: record.referrals === 'Yes' ? colors.primaryLight : '#f1f5f9',
+                        color: record.referrals === 'Yes' ? colors.primary : colors.textMuted,
+                        border: `1px solid ${record.referrals === 'Yes' ? colors.primaryBorder : colors.border}`,
+                      }}>
+                        {record.referrals === 'Yes' ? 'Referral: Haa' : 'Maya'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {activeRecords.length === 0 && (
+              <div style={{ padding: '36px', color: colors.textMuted, textAlign: 'center', fontSize: '13px' }}>
+                Warbixinno diiwaangashan lama helin.
+              </div>
+            )}
+          </div>
         </div>
       </section>
     );
@@ -59,20 +162,45 @@ export default function HRoleOverview({ view, pendingQueue, activeRecords, perso
     const referred = activeRecords.filter((record) => record.referrals === 'Yes').length;
     const restDays = activeRecords.reduce((total, record) => total + Number(record.days || 0), 0);
     return (
-      <section>
-        <h2 style={{ color: '#1a2a6c', marginTop: 0 }}>Analytics</h2>
-        <h3 style={{ color: '#243447' }}>Analytics &amp; Overview</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '16px' }}>
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
           {[
-            ['Total Personnel', personnel.length, '#5d5fef'],
-            ['In Queue', pendingQueue.length, '#fdbb2d'],
-            ['Medical Reports', activeRecords.length, '#27ae60'],
-            ['Referred Reports', referred, '#e74c3c'],
-            ['Recorded Days', restDays, '#3267a8']
-          ].map(([label, value, color]) => <div key={label} style={{ ...cardStyle, borderLeft: `4px solid ${color}` }}>
-            <span style={{ color: '#718096', fontSize: '12px' }}>{label}</span>
-            <strong style={{ display: 'block', marginTop: '8px', color: '#1a2a6c', fontSize: '28px' }}>{value}</strong>
-          </div>)}
+            { label: 'Wadarta Askarta', value: personnel.length, icon: Users },
+            { label: 'Safka Sugitaanka', value: pendingQueue.length, icon: AlertCircle },
+            { label: 'Warbixinno Caafimaad', value: activeRecords.length, icon: FileText },
+            { label: 'La Gudbiyey (Referred)', value: referred, icon: ArrowUpRight },
+            { label: 'Isku-darka Maalmaha', value: restDays, icon: CheckCircle }
+          ].map((item) => (
+            <div key={item.label} style={{
+              ...cardStyle,
+              padding: '16px',
+              borderTop: `3px solid ${colors.primary}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div>
+                <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {item.label}
+                </span>
+                <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>
+                  {item.value}
+                </strong>
+              </div>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: borderRadius.md,
+                backgroundColor: colors.primaryLight,
+                color: colors.primary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <item.icon size={18} />
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     );

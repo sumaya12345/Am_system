@@ -4,199 +4,50 @@ import './H1Dashboard.css';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import { 
   LayoutDashboard, Bell, FileText, Users, Settings, LogOut, 
-  PieChart, MessageSquare, Moon, Menu, X, Send, Paperclip, Search, User,
-  Check, CheckCheck, Camera, Save, Shield, Lock, Monitor, Activity, ArrowUpRight
+  PieChart, MessageSquare, Menu, X, Send, Paperclip, Search, User,
+  Check, CheckCheck, Camera, Save, Shield, Lock, Monitor, Activity, ArrowUpRight, AlertCircle, ArrowLeft, Clock
 } from 'lucide-react';
 import FariimahaModal from './FariimahaModal';
 import { useAuthUser, getProfilePicUrl } from './authSync';
+import Sidebar from './components/Sidebar';
+import { 
+  colors, 
+  cardStyle, 
+  tableStyle, 
+  tableHeaderStyle, 
+  tableCellStyle, 
+  buttonPrimaryStyle, 
+  buttonSecondaryStyle, 
+  badgeStyle, 
+  borderRadius, 
+  typography 
+} from './designSystem';
 
-// --- 1. MESSENGER COMPONENT ---
-function MessengerH1({ isOpen, onClose, activeUser }) {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [message, setMessage] = useState('');
-  const [contacts, setContacts] = useState([]);
-  const [messages, setMessages] = useState([]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    axios.get('http://localhost:5000/api/users')
-      .then(res => setContacts((res.data || []).map((contact, index) => ({
-        ...contact,
-        name: contact.role === 'Urur' ? 'Taliyaha Urur' : contact.username,
-        color: ['#2ecc71', '#e74c3c', '#34495e', '#5d5fef'][index % 4]
-      }))))
-      .catch(err => console.error('H1 message users error:', err));
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen || !activeUser?.id || !selectedUser?.id) return;
-    const fetchConversation = () => axios.get(`http://localhost:5000/api/messages/chat/${activeUser.id}/${selectedUser.id}`)
-      .then(res => setMessages(res.data || []))
-      .catch(err => console.error('H1 conversation error:', err));
-    fetchConversation();
-    const interval = setInterval(fetchConversation, 3000);
-    return () => clearInterval(interval);
-  }, [isOpen, activeUser?.id, selectedUser?.id]);
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedUser(null);
-      setMessage('');
-      setMessages([]);
-    }
-  }, [isOpen]);
-
-  const handleSend = async () => {
-    if (!message.trim() || !activeUser?.id || !selectedUser?.id) return;
-    const formData = new FormData();
-    formData.append('message', message.trim());
-    formData.append('sender', String(activeUser.id));
-    formData.append('receiver', String(selectedUser.id));
-    try {
-      await axios.post('http://localhost:5000/api/messages', formData);
-      setMessage('');
-      const res = await axios.get(`http://localhost:5000/api/messages/chat/${activeUser.id}/${selectedUser.id}`);
-      setMessages(res.data || []);
-    } catch (err) {
-      console.error('H1 message send error:', err);
-      alert(err.response?.data?.error || 'Cilad ayaa dhacday markii fariinta la dirayey.');
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
-      background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', 
-      alignItems: 'center', zIndex: 3000 
-    }}>
-      <div style={{ 
-        width: '850px', height: '580px', backgroundColor: '#fff', 
-        borderRadius: '15px', display: 'flex', overflow: 'hidden', 
-        boxShadow: '0 15px 40px rgba(0,0,0,0.3)' 
-      }}>
-        
-        {/* Sidebar */}
-        <div style={{ width: '280px', borderRight: '1px solid #eee', display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb' }}>
-          <div style={{ padding: '25px 20px', borderBottom: '1px solid #eee' }}>
-            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>Fariimaha</h3>
-          </div>
-          <div style={{ overflowY: 'auto', flex: 1 }}>
-            {contacts.map((contact) => (
-              <div 
-                key={contact.id} 
-                onClick={() => setSelectedUser(contact)} 
-                style={{
-                  padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer',
-                  backgroundColor: selectedUser?.id === contact.id ? '#5d5fef' : 'transparent',
-                  color: selectedUser?.id === contact.id ? 'white' : '#333',
-                  transition: '0.2s'
-                }}
-              >
-                <div style={{ 
-                  width: '45px', height: '45px', borderRadius: '50%', 
-                  backgroundColor: selectedUser?.id === contact.id ? 'rgba(255,255,255,0.2)' : contact.color, 
-                  display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff' 
-                }}>
-                  <User size={22} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: '600', fontSize: '15px' }}>{contact.name}</div>
-                  <div style={{ fontSize: '12px', opacity: 0.8 }}>{contact.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Chat Window */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-          {selectedUser ? (
-            <>
-              <div style={{ padding: '18px 25px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#2ecc71' }}></div>
-                   <span style={{ fontWeight: 'bold', fontSize: '17px' }}>{selectedUser.name}</span>
-                </div>
-                <X size={22} style={{ cursor: 'pointer', color: '#888' }} onClick={onClose} />
-              </div>
-
-              <div style={{ flex: 1, padding: '25px', backgroundColor: '#f0f2f5', overflowY: 'auto' }}>
-                 {messages.map(msg => (
-                   <div key={msg.id} style={{ textAlign: Number(msg.sender) === Number(activeUser?.id) ? 'right' : 'left', marginBottom: '8px' }}>
-                     <span style={{ display: 'inline-block', padding: '8px 12px', borderRadius: '12px', background: Number(msg.sender) === Number(activeUser?.id) ? '#5d5fef' : '#fff', color: Number(msg.sender) === Number(activeUser?.id) ? '#fff' : '#333' }}>{msg.message}</span>
-                   </div>
-                 ))}
-              </div>
-
-              <div style={{ padding: '20px', backgroundColor: '#fff', borderTop: '1px solid #eee', display: 'flex', gap: '15px', alignItems: 'center' }}>
-                <Paperclip size={24} style={{ color: '#5d5fef', cursor: 'pointer' }} />
-                <textarea 
-                  style={{ 
-                    flex: 1, border: '1px solid #e1e1e1', borderRadius: '10px', padding: '12px', 
-                    height: '45px', outline: 'none', resize: 'none', fontSize: '14px', background: '#f8f9fa' 
-                  }} 
-                  placeholder="Qor fariin..." 
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                />
-                <button 
-                  onClick={handleSend}
-                  style={{ 
-                    background: '#5d5fef', color: '#fff', border: 'none', 
-                    padding: '12px', borderRadius: '50%', cursor: 'pointer', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center' 
-                  }}
-                >
-                  <Send size={20} />
-                </button>
-              </div>
-            </>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: '#999' }}>
-               <MessageSquare size={60} strokeWidth={1} style={{ marginBottom: '15px', color: '#ddd' }} />
-               <p style={{ fontSize: '18px' }}>Dooro qof aad la hadashid</p>
-               <X size={24} style={{ position: 'absolute', right: '20px', top: '20px', cursor: 'pointer' }} onClick={onClose} />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-function Horinta1Dashboard({ user, onLogout }) {
-  const authUser = useAuthUser(user);
-  const activeUser = authUser || user || JSON.parse(localStorage.getItem('user')) || {};
-  // --- STATE MANAGEMENT ---
+function Horinta1({ user, onLogout }) {
   const [data, setData] = useState([]);
-  const [activePage, setActivePage] = useState('dashboard'); 
-  const [showNotifyList, setShowNotifyList] = useState(false);
-  const [viewedSarkaal, setViewedSarkaal] = useState(null);    
-  const [hoveredRowId, setHoveredRowId] = useState(null);
-  const [medicalReports, setMedicalReports] = useState([]);  
-  const [editingSarkaal, setEditingSarkaal] = useState(null);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [medicalReports, setMedicalReports] = useState([]);
   const [pendingQueue, setPendingQueue] = useState([]);
   const [activeRecords, setActiveRecords] = useState([]);
-  const [personnel, setPersonnel] = useState([]);  
-  const [selectedStaff, setSelectedStaff] = useState(null);
-  const [medicalHistory, setMedicalHistory] = useState([]);
-  const [errors, setErrors] = useState({}); // Waxaan ku daray state-ka errors-ka
+  const [personnel, setPersonnel] = useState([]);
+  const [activePage, setActivePage] = useState('dashboard');
   const [isExpanded, setIsExpanded] = useState(true);
-  const [initiatedList, setInitiatedList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const authConfig = () => ({ headers: { 'X-Session-ID': sessionStorage.getItem('sessionId') || localStorage.getItem('sessionId') || '' } });
-  const loggedInUser = user || JSON.parse(localStorage.getItem('user')) || {};
+  const [showNotifyList, setShowNotifyList] = useState(false);
+  const [viewedSarkaal, setViewedSarkaal] = useState(null);
+  const [showMsgModal, setShowMsgModal] = useState(false);
+  const [hoveredRowId, setHoveredRowId] = useState(null);
+
+  // Settings states
+  const authUser = useAuthUser(user);
+  const activeUser = authUser || user || {};
+  const loggedInUser = activeUser;
   const [settingsUsername, setSettingsUsername] = useState(loggedInUser.username || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newProfilePic, setNewProfilePic] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
   const [analyticsData, setAnalyticsData] = useState({
     totalPersonnel: 0,
     totalProcessed: 0,
@@ -205,54 +56,19 @@ function Horinta1Dashboard({ user, onLogout }) {
     statusDistribution: [],
     monthlyActivity: []
   });
-  const [settingsSaving, setSettingsSaving] = useState(false);
-const modalOverlayStyle = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  background: 'rgba(0,0,0,0.5)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1000
-};
 
-const textAreaStyle = {
-  width: '100%',
-  height: '120px',
-  borderRadius: '8px',
-  border: '1px solid #ddd',
-  padding: '12px',
-  fontSize: '14px',
-  fontFamily: 'inherit',
-  backgroundColor: '#fff',
-  marginBottom: '10px'
-};
+  const authConfig = () => {
+    const sessionId = sessionStorage.getItem('sessionId') || localStorage.getItem('sessionId');
+    return sessionId ? { headers: { 'X-Session-ID': sessionId } } : {};
+  };
 
-const sendBtnStyle = {
-  background: '#5d5fef',
-  color: 'white',
-  border: 'none',
-  padding: '10px 20px',
-  borderRadius: '8px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  cursor: 'pointer',
-  fontWeight: '600',
-  transition: '0.2s'
-};
-const inputStyle = { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', boxSizing: 'border-box' };
-  // --- FETCH DATA FROM API ---
   const fetchData = async () => {
     try {
-         const [qRes, rRes, pRes, analyticsRes] = await Promise.all([
-           axios.get('http://localhost:5000/api/ballan/queue', authConfig()),
-           axios.get('http://localhost:5000/api/medical-records', authConfig()),
-           axios.get('http://localhost:5000/api/sarkaal-data', authConfig()),
-           axios.get('http://localhost:5000/api/h1-analytics', authConfig())
+      const [qRes, rRes, pRes, analyticsRes] = await Promise.all([
+        axios.get('http://localhost:5000/api/ballan/queue', authConfig()),
+        axios.get('http://localhost:5000/api/medical-records', authConfig()),
+        axios.get('http://localhost:5000/api/sarkaal-data', authConfig()),
+        axios.get('http://localhost:5000/api/h1-analytics', authConfig())
       ]);
 
       const queue = Array.isArray(qRes.data) ? qRes.data : [];
@@ -275,7 +91,6 @@ const inputStyle = { width: '100%', padding: '12px', borderRadius: '8px', border
     return () => clearInterval(interval);
   }, []);
 
-  // --- HANDLERS ---
   const handleLogout = () => {
     if (onLogout) onLogout();
   };
@@ -314,612 +129,525 @@ const inputStyle = { width: '100%', padding: '12px', borderRadius: '8px', border
     }
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      for (const key in editingSarkaal) {
-        formData.append(key, editingSarkaal[key]);
-      }
-      await axios.put(`http://localhost:5000/api/sarkaal-data/${editingSarkaal.id}`, formData);
-      setShowEditForm(false);
-      fetchData();
-      alert("Xogta waa la cusubaysiiyey!");
-    } catch (err) {
-      console.error("Update error:", err);
-    }
-  };
-
-  const handleViewDetails = async (staff) => {
-    setSelectedStaff(staff);
-    try {
-      const res = await axios.get(`http://localhost:5000/api/medical-records/${staff.id}`);
-      setMedicalHistory(res.data);
-      setActiveTab('history-view'); 
-    } catch (err) {
-      setMedicalHistory([]);
-      setActiveTab('history-view');
-    }
-  };
-const sidebarStyle = {
-    width: isExpanded ? '260px' : '80px',
-    height: '100vh',
-    backgroundColor: '#1e3a8a',
-    color: '#bfdbfe',
-    display: 'flex',
-    flexDirection: 'column',
-    transition: 'all 0.3s ease',
-    borderRight: 'none',
-    fontFamily: 'Inter, sans-serif'
-  };
-  // --- DYNAMIC STYLES ---
-  const dynamicSidebarStyle = {
-    width: isExpanded ? '200px' : '80px',
-    background: '#eafaf1',
-    color: '#333',
-    padding: '20px 0',
-    position: 'fixed',
-    height: '100vh',
-    transition: 'all 0.3s ease',
-    zIndex: 100,
-    borderRight: '1px solid #eee',
-    display: 'flex',
-    flexDirection: 'column'
-  };
-
-  const fetchMedicalReports = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/medical-records');
-      setMedicalReports(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error("Khalad caafimaadka:", error);
-    }
-  };
-
-  // 4. useEffect: Auto-refresh 3-dii ilbiriqsi kasta
-  useEffect(() => {
-    // Isla markii bogga la furo wac
-    fetchTable();
-    fetchMedicalReports();
-    setLoading(false);
-
-    // Samee Interval 3 seconds ah
-    const interval = setInterval(() => {
-      fetchTable();
-      fetchMedicalReports();
-    }, 3000);
-
-    // Nadiifi interval-ka markii bogga laga baxo
-    return () => clearInterval(interval);
-  }, []);
-    // Function-ka soo kaxaynaya xogta askarta
-const fetchTable = async () => {
-  try {
-    const response = await axios.get('http://localhost:5000/api/sarkaal-data');
-    setData(Array.isArray(response.data) ? response.data : []); 
-  } catch (error) {
-    console.error("Khalad ayaa dhacay markii xogta la soo kaxaynayay:", error);
-  }
-};
-
-// Function-ka soo kaxaynaya warbixinada caafimaadka
-
-  const dynamicMainContentStyle = {
-    flex: 1,
-    marginLeft: isExpanded ? '260px' : '80px',
-    padding: '24px',
-    transition: 'all 0.3s ease',
-    minHeight: '100vh',
-    backgroundColor: '#f1f5f9'
-  };
   const flaggedAskar = data.filter(sarkaal => {
-  const totalDays = medicalReports
-    .filter(r => r.sarkaal_id === sarkaal.sarkaal_id && r.limitation === 'Yattak Istirihat')
-    .reduce((sum, r) => sum + Number(r.days || 0), 0);
-  return totalDays >= 45;
-});
-  const colors = {
-  bg: darkMode ? '#121212' : '#f8faf9',      // Midabka dhabarka (Background)
-  sidebar: darkMode ? '#1e1e1e' : '#ffffff', // Midabka dhinac-ka
-  text: darkMode ? '#ffffff' : '#333333',    // Midabka qoraalka
-  border: darkMode ? '#333333' : '#edf2f0'   // Midabka xariiqyada
-};
-const hasNotifications = flaggedAskar.length > 0;
-const h1Reports = medicalReports;
-const statusColors = ['#5d5fef', '#27ae60', '#f1c40f', '#e76f51', '#8b98a8'];
-const navItemStyle = (isActive) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: '10px 14px',
-    cursor: 'pointer',
-    gap: '10px',
-    color:           isActive ? '#ffffff'  : '#bfdbfe',
-    backgroundColor: isActive ? '#2563eb' : 'transparent',
-    borderRadius: '8px',
-    margin: '2px 8px',
-    fontWeight: isActive ? '600' : '500',
-    fontSize: '14px',
-    transition: '0.15s'
+    const totalDays = medicalReports
+      .filter(r => r.sarkaal_id === sarkaal.sarkaal_id && r.limitation === 'Yattak Istirihat')
+      .reduce((sum, r) => sum + Number(r.days || 0), 0);
+    return totalDays >= 45;
   });
-  const [showMsgModal, setShowMsgModal] = useState(false);
 
-const [messageBody, setMessageBody] = useState('');
-
-const [messageFile, setMessageFile] = useState(null);
-  const sendMessageToH1 = async () => {
-    if (!messageBody.trim()) {
-        alert("Fariinta ma noqon karto mid maran!");
-        return;
-    }
-
-    try {
-        const formData = new FormData();
-        // MUHIIM: U bixi 'message' si uu Backend-ka u garto
-        formData.append('message', messageBody); 
-        formData.append('sender', 'S1');
-        formData.append('receiver', 'H1');
-        
-        if (messageFile) {
-            formData.append('attachment', messageFile);
-        }
-
-        // 1. Line-kan ka saar comment-ka si uu xogta u diro
-        // 2. Hubi in axios uu kuu dhex jiro (import axios from 'axios')
-        const response = await axios.post('http://localhost:5000/api/messages', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-
-        if (response.status === 200) {
-            console.log("Database-ka waa lagu shubay!");
-            alert("Fariinta si guul leh ayaa loogu diray H1!");
-            
-            // Nadiifi foomka
-            setMessageBody('');
-            setMessageFile(null);
-            setShowMsgModal(false);
-        }
-    } catch (error) {
-        console.error("Ciladda dhabta ah:", error.response?.data || error.message);
-        alert("Cilad ayaa dhacday: " + (error.response?.data?.error || "Server-ka lama heli karo"));
-    }
-};
-
-const sendMessage = async (receiverId) => {
-  if (!messageBody.trim()) return alert("Fariinta ma noqon karto mid maran!");
-
-  try {
-    const formData = new FormData();
-    formData.append('message', messageBody);
-    formData.append('sender', 'H1'); // Adiga (Horinta 1aad)
-    formData.append('receiver', receiverId); // Qofka la doortay
-    if (messageFile) formData.append('attachment', messageFile);
-
-    await axios.post('http://localhost:5000/api/messages', formData);
-    
-    alert(`Fariinta waa loo diray ${receiverId}`);
-    setMessageBody('');
-    setMessageFile(null);
-    // Waxaad kaloo xiri kartaa modal-ka ama waad iska deyn kartaa
-  } catch (error) {
-    alert("Cilad ayaa dhacday markii fariinta la dirayey.");
-  }
-};
+  const hasNotifications = flaggedAskar.length > 0;
+  const h1Reports = medicalReports;
+  const chartColors = ['#0f2744', '#2563eb', '#64748b', '#94a3b8', '#cbd5e1'];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f5f9' }}>
-      <FariimahaModal isOpen={showMsgModal} onClose={() => setShowMsgModal(false)} currentUser={activeUser} darkMode={darkMode} />
-      {/* SIDEBAR */}
-      <aside style={{
-                ...sidebarStyle,
-                height: '100vh', 
-                position: 'sticky', 
-                top: 0, 
-                background: '#1e3a8a', 
-                borderRight: 'none',
-                display: 'flex',
-                flexDirection: 'column'
-              }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: colors.background }}>
+      <Sidebar
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
+        activeUser={activeUser}
+        activePage={activePage}
+        setActivePage={setActivePage}
+        onLogout={handleLogout}
+        showMsgModal={showMsgModal}
+        setShowMsgModal={setShowMsgModal}
+        role="H1"
+      />
 
-                {/* Profile Section */}
-                <div style={{ padding: '18px 16px', display: 'flex', alignItems: 'center', justifyContent: isExpanded ? 'space-between' : 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img 
-                      src={getProfilePicUrl(activeUser.pic)} 
-                      alt="Profile" 
-                      style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.4)', objectFit: 'cover' }} 
-                      onError={(e) => { e.target.src = "/assets/profiles/default.png"; }}
-                    />
-                    {isExpanded && (
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#ffffff' }}>
-                          {activeUser.username || "H1 Officer"} 
-                        </h3>
-                        <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#93c5fd', fontWeight: '600' }}>Role: {activeUser.role || 'H1'}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div onClick={() => setIsExpanded(!isExpanded)} style={{ cursor: 'pointer', color: '#93c5fd', flexShrink: 0 }}>
-                    <Menu size={20} />
-                  </div>
-                </div>
-
-                {/* Navigation */}
-                <nav style={{ flexGrow: 1 }}>
-                  <div onClick={() => setActivePage('dashboard')} style={navItemStyle(activePage === 'dashboard')}>
-                    <LayoutDashboard size={22} />
-                    {isExpanded && <span>Dashboard</span>}
-                  </div>
-                  
-                  <div onClick={() => setActivePage('reports')} style={navItemStyle(activePage === 'reports')}>
-                    <FileText size={22} />
-                    {isExpanded && <span>Reports</span>}
-                  </div>
-                  
-                  <div onClick={() => setActivePage('askar')} style={navItemStyle(activePage === 'askar')}>
-                    <Users size={22} />
-                    {isExpanded && <span>Xogta Askar</span>}
-                  </div>
-
-                  <div onClick={() => setActivePage('analytics')} style={navItemStyle(activePage === 'analytics')}>
-                    <PieChart size={22} />
-                    {isExpanded && <span>Analytics</span>}
-                  </div>
-                  
-                  <div onClick={() => setActivePage('settings')} style={navItemStyle(activePage === 'settings')}>
-                    <Settings size={22} />
-                    {isExpanded && <span>Settings</span>}
-                  </div>
-                </nav>
-
-                {/* Bottom Actions */}
-                <div style={{ padding: '15px', borderTop: darkMode ? '1px solid #333' : '1px solid #f5f7fb' }}>
-                  
-                  {/* MESSAGES SECTION */}
-                  <div onClick={() => setShowMsgModal(true)} style={navItemStyle(showMsgModal)}>
-   <MessageSquare size={20} /> {isExpanded && <span>Fariimaha</span>}
-</div>
-
-                  <div onClick={handleLogout} style={{ ...navItemStyle(false), color: '#e74c3c' }}>
-                    <LogOut size={20} />
-                    {isExpanded && <span>Logout</span>}
-                  </div>
-                  
-                  <div style={{ ...navItemStyle(false), justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <Moon size={20} />
-                      {isExpanded && <span>Night Mode</span>}
-                    </div>
-                    {isExpanded && (
-                      <div onClick={() => setDarkMode(!darkMode)} style={{ width: '36px', height: '18px', backgroundColor: darkMode ? '#5d5fef' : '#ddd', borderRadius: '20px', cursor: 'pointer', position: 'relative' }}>
-                        <div style={{ width: '14px', height: '14px', backgroundColor: '#fff', borderRadius: '50%', position: 'absolute', top: '2px', left: darkMode ? '20px' : '2px', transition: '0.3s' }}></div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </aside>
-
-      {/* MAIN CONTENT */}
-       <main style={{ 
-          flexGrow: 1, 
-          padding: '20px',             // Padding-ka yaree si uu Sidebarka ugu dhowaado
-          backgroundColor: darkMode ? '#121212' : '#f8faf9', 
-          color: darkMode ? '#000001' : '#000',
-          minHeight: '100vh',
-          marginLeft: '0px',           // Hubi inaanu jirin margin bidix ah oo riixaya
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px'
-        }}>
-        
+      {/* ── MAIN CONTENT ── */}
+      <main style={{
+        flexGrow: 1,
+        padding: '24px 32px',
+        backgroundColor: colors.background,
+        color: colors.text,
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+      }}>
+        {/* Top Header */}
         <header style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingBottom: '16px',
+          borderBottom: `1px solid ${colors.border}`,
+        }} className="no-print">
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h1 style={{ margin: 0, color: colors.text, fontSize: '22px', fontWeight: '800' }}>
+                Horinta 1aad
+              </h1>
+              <span style={{
+                ...badgeStyle,
+                backgroundColor: colors.primaryLight,
+                color: colors.primary,
+                border: `1px solid ${colors.primaryBorder}`,
+                fontWeight: '700',
+              }}>
+                H1 Division Portal
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0', color: colors.textMuted, fontSize: '13px' }}>
+              Maamulka xogta caafimaadka iyo askarta Horinta 1aad.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Notification Bell */}
+            <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowNotifyList(!showNotifyList)}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: borderRadius.md,
+                backgroundColor: colors.white,
+                border: `1px solid ${colors.border}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: colors.textSecondary,
+              }}>
+                <Bell size={18} />
+              </div>
+
+              {hasNotifications && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  background: colors.error,
+                  color: 'white',
+                  fontSize: '10px',
+                  padding: '2px 5px',
+                  borderRadius: '50%',
+                  fontWeight: '700',
+                  lineHeight: 1,
+                  border: '2px solid white',
+                }}>
+                  {flaggedAskar.length}
+                </span>
+              )}
+
+              {/* Notification Dropdown */}
+              {showNotifyList && (
+                <div style={{
+                  position: 'absolute',
+                  top: '44px',
+                  right: '0',
+                  width: '320px',
+                  background: colors.white,
+                  boxShadow: colors.shadowLg,
+                  borderRadius: borderRadius.lg,
+                  zIndex: 1000,
+                  overflow: 'hidden',
+                  border: `1px solid ${colors.border}`,
+                }}>
+                  <div style={{
+                    padding: '12px 16px',
+                    background: '#f8fafc',
+                    borderBottom: `1px solid ${colors.border}`,
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '15px 30px',
-                    marginLeft: '0px',
-                    background: 'white',
-                    borderBottom: '1px solid #eee'
                   }}>
-                    <h2 style={{ margin: 0, color: '#1a2a6c', fontWeight: '700' }}>H1 Dashboard</h2>
+                    <span style={{ fontWeight: '700', fontSize: '13px', color: colors.text }}>Ogeysiisyada Istiraxada</span>
+                    <span style={{ ...badgeStyle, backgroundColor: colors.errorBg, color: colors.error, border: `1px solid ${colors.errorBorder}` }}>
+                      {flaggedAskar.length} Qof
+                    </span>
+                  </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-
-                      {/* --- NOTIFICATION ICON --- */}
-                      {hasNotifications && (
-                        <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowNotifyList(!showNotifyList)}>
-                          
-                          {/* Lucide Icon: Bell */}
-                          <Bell size={24} />
-
-                          {/* Counter-ka Casaanka ah */}
-                          <span style={{
-                            position: 'absolute',
-                            top: '-5px',
-                            right: '-5px',
-                            background: '#e74c3c',
-                            color: 'white',
-                            fontSize: '10px',
-                            padding: '2px 6px',
-                            borderRadius: '50%',
-                            fontWeight: 'bold',
-                            border: '2px solid white'
-                          }}>
-                            {flaggedAskar.length}
-                          </span>
-
-                          {/* --- DROPDOWN LIST --- */}
-                          {showNotifyList && (
-                            <div style={{
-                              position: 'absolute',
-                              top: '35px',
-                              right: '0',
-                              width: '300px',
-                              background: 'white',
-                              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                              borderRadius: '12px',
-                              zIndex: 1000,
-                              overflow: 'hidden',
-                              border: '1px solid #eee'
-                            }}>
-                              <div style={{ 
-                                padding: '12px', 
-                                background: '#f8f9fa', 
-                                borderBottom: '1px solid #eee', 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
-                                alignItems: 'center' 
-                              }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '14px' }}>Ogeysiiska Caafimaadka</span>
-                                <span style={{ 
-                                  background: '#eafaf1', 
-                                  color: '#27ae60', 
-                                  padding: '4px 12px', 
-                                  borderRadius: '20px', 
-                                  fontSize: '12px', 
-                                  fontWeight: 'bold' 
-                                }}>
-                                  {flaggedAskar.length} QOF
-                                </span>
-                              </div>
-
-                              <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                                {flaggedAskar.length > 0 ? (
-                                  flaggedAskar.map((s) => (
-                                    <div
-                                      key={s.sarkaal_id}
-                                      onClick={() => {
-                                        setViewedSarkaal(s);
-                                        setActivePage('view');
-                                        setShowNotifyList(false);
-                                      }}
-                                      style={{
-                                        padding: '12px',
-                                        borderBottom: '1px solid #f9f9f9',
-                                        cursor: 'pointer',
-                                        transition: '0.2s'
-                                      }}
-                                      onMouseEnter={(e) => e.currentTarget.style.background = '#f0f2f5'}
-                                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                    >
-                                      <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '12px'
-                                      }}>
-                                        <img 
-                                          src={`http://localhost:5000/${s.profile_pic}`} 
-                                          alt="" 
-                                          style={{ 
-                                            width: '45px', 
-                                            height: '45px', 
-                                            borderRadius: '10px', 
-                                            objectFit: 'cover',
-                                            border: '1px solid #eee' 
-                                          }} 
-                                        />
-
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                          <h4 style={{ 
-                                            margin: 0, 
-                                            fontSize: '14px', 
-                                            fontWeight: '600', 
-                                            color: '#2c3e50' 
-                                          }}>
-                                            {s.name}
-                                          </h4>
-                                          <span style={{ fontSize: '11px', color: '#7f8c8d' }}>
-                                            ID: {s.sarkaal_id}
-                                          </span>
-                                          <p style={{ 
-                                            margin: 0, 
-                                            fontSize: '10px', 
-                                            color: '#e74c3c', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            gap: '3px' 
-                                          }}>
-                                            ⚠️ Wuxuu dhaafay Xadka Yattaka
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
-                                    Ma jiraan ogeysiisyo cusub
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
+                  <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    {flaggedAskar.length > 0 ? (
+                      flaggedAskar.map((s) => (
+                        <div
+                          key={s.sarkaal_id}
+                          onClick={() => {
+                            setViewedSarkaal(s);
+                            setActivePage('view');
+                            setShowNotifyList(false);
+                          }}
+                          style={{
+                            padding: '10px 14px',
+                            borderBottom: `1px solid ${colors.borderLight}`,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <img 
+                            src={`http://localhost:5000/${s.profile_pic}`} 
+                            alt="" 
+                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} 
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                          />
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: '600', color: colors.text }}>{s.name}</div>
+                            <div style={{ fontSize: '11px', color: colors.error, fontWeight: '500' }}>⚠️ 45+ Maalmood Istiraxo</div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </header>
+                      ))
+                    ) : (
+                      <div style={{ padding: '20px', textAlign: 'center', color: colors.textMuted, fontSize: '12px' }}>
+                        Ma jiraan ogeysiisyo cusub.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
-        {/* DASHBOARD PAGE */}
+            <button onClick={fetchData} style={buttonPrimaryStyle}>
+              <Check size={15} />
+              <span>Refresh Data</span>
+            </button>
+          </div>
+        </header>
+
+        {/* ── DASHBOARD TAB ── */}
+        {activePage === 'dashboard' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Stat Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div style={{ ...cardStyle, padding: '16px 20px', borderTop: `3px solid ${colors.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Safka Sugitaanka MO</span>
+                  <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>{pendingQueue.length}</strong>
+                </div>
+                <div style={{ width: '38px', height: '38px', borderRadius: borderRadius.md, backgroundColor: colors.primaryLight, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={18} />
+                </div>
+              </div>
+
+              <div style={{ ...cardStyle, padding: '16px 20px', borderTop: `3px solid ${colors.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Baaritaannada Firfircoon</span>
+                  <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>{activeRecords.length}</strong>
+                </div>
+                <div style={{ width: '38px', height: '38px', borderRadius: borderRadius.md, backgroundColor: colors.primaryLight, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCheck size={18} />
+                </div>
+              </div>
+
+              <div style={{ ...cardStyle, padding: '16px 20px', borderTop: `3px solid ${colors.primary}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <span style={{ color: colors.textMuted, fontSize: '11.5px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Wadarta Askarta H1</span>
+                  <strong style={{ display: 'block', marginTop: '6px', color: colors.text, fontSize: '24px', fontWeight: '800' }}>{personnel.length}</strong>
+                </div>
+                <div style={{ width: '38px', height: '38px', borderRadius: borderRadius.md, backgroundColor: colors.primaryLight, color: colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={18} />
+                </div>
+              </div>
+            </div>
+
+            {/* 1. Safka MO (Pending) */}
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>1. Safka MO (Pending)</h3>
+                <span style={{ fontSize: '12px', color: colors.textMuted }}>Wadarta: <strong>{pendingQueue.length}</strong></span>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr style={tableHeaderStyle}>
+                      <th style={tableHeaderStyle}>Sawir</th>
+                      <th style={tableHeaderStyle}>Magaca</th>
+                      <th style={tableHeaderStyle}>Sarkaal ID</th>
+                      <th style={tableHeaderStyle}>Culays</th>
+                      <th style={tableHeaderStyle}>Dhiig</th>
+                      <th style={tableHeaderStyle}>Dhirir</th>
+                      <th style={tableHeaderStyle}>Xaaladda</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingQueue.map(item => (
+                      <tr key={item.sarkaal_data_id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                        <td style={tableCellStyle}>
+                          <img 
+                            src={`http://localhost:5000/${item.profile_pic}`} 
+                            width="34" 
+                            height="34" 
+                            style={{ borderRadius: '50%', objectFit: 'cover', border: `1px solid ${colors.border}` }} 
+                            alt="profile"
+                            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                          />
+                        </td>
+                        <td style={{ ...tableCellStyle, fontWeight: '600' }}>{item.name}</td>
+                        <td style={tableCellStyle}>{item.sarkaal_id}</td>
+                        <td style={tableCellStyle}>{item.culays ?? '-'} kg</td>
+                        <td style={tableCellStyle}>{item.dhiiga || '-'}</td>
+                        <td style={tableCellStyle}>{item.dhirirka ?? '-'} cm</td>
+                        <td style={tableCellStyle}>
+                          <span style={{ ...badgeStyle, backgroundColor: colors.warningBg, color: colors.warning, border: `1px solid ${colors.warningBorder}` }}>
+                            Pending for H1
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {pendingQueue.length === 0 && (
+                  <div style={{ padding: '24px', textAlign: 'center', color: colors.textMuted, fontSize: '13px' }}>
+                    Safka MO waa maran yahay.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Active Records Table */}
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>2. Warbixinnada Baaritaanka (Active Records)</h3>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr style={tableHeaderStyle}>
+                      <th style={tableHeaderStyle}>Sawir</th>
+                      <th style={tableHeaderStyle}>ID</th>
+                      <th style={tableHeaderStyle}>Magaca</th>
+                      <th style={tableHeaderStyle}>Xaddidaadda</th>
+                      <th style={tableHeaderStyle}>Maalmaha Hadhay</th>
+                      <th style={tableHeaderStyle}>Xaaladda</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeRecords.reduce((acc, current) => {
+                      const xogtaHore = acc.find(item => item.sarkaal_id === current.sarkaal_id);
+                      if (xogtaHore) {
+                        xogtaHore.days = parseInt(xogtaHore.days) + parseInt(current.days);
+                        return acc;
+                      } else {
+                        return [...acc, { ...current }];
+                      }
+                    }, []).map((report) => {
+                      const maanta = new Date();
+                      const taariikhdaLaQoray = new Date(report.created_at);
+                      const dhamaadka = new Date(taariikhdaLaQoray);
+                      dhamaadka.setDate(dhamaadka.getDate() + parseInt(report.days));
+                      const maalmahaHadhay = Math.ceil((dhamaadka - maanta) / (1000 * 60 * 60 * 24));
+
+                      if (maalmahaHadhay <= 0) return null;
+
+                      return (
+                        <tr key={report.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                          <td style={tableCellStyle}>
+                            <img 
+                              src={`http://localhost:5000/${report.profile_pic}`} 
+                              width="34" 
+                              height="34" 
+                              style={{ borderRadius: '50%', objectFit: 'cover', border: `1px solid ${colors.border}` }} 
+                              alt="profile"
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                            />
+                          </td>
+                          <td style={{ ...tableCellStyle, fontWeight: '600' }}>{report.sarkaal_id}</td>
+                          <td style={tableCellStyle}>{report.name}</td>
+                          <td style={tableCellStyle}><strong>{report.limitation}</strong></td>
+                          <td style={tableCellStyle}>
+                            <span style={{
+                              ...badgeStyle,
+                              backgroundColor: maalmahaHadhay <= 1 ? colors.errorBg : colors.primaryLight,
+                              color: maalmahaHadhay <= 1 ? colors.error : colors.primary,
+                              border: `1px solid ${maalmahaHadhay <= 1 ? colors.errorBorder : colors.primaryBorder}`,
+                              fontWeight: '700',
+                            }}>
+                              {maalmahaHadhay} Maalmood
+                            </span>
+                          </td>
+                          <td style={tableCellStyle}>
+                            <span style={{ ...badgeStyle, backgroundColor: colors.successBg, color: colors.success, border: `1px solid ${colors.successBorder}` }}>
+                              Active
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── REPORTS TAB ── */}
         {activePage === 'reports' && (
           <div className="h1-page">
-            <div className="h1-page-title"><div><h1>H1 Reports</h1><p>Medical activity and personnel records for Horinta 1aad.</p></div><button className="h1-secondary-button" onClick={fetchData}><Check size={16} /> Refresh</button></div>
-            <div className="h1-summary-grid">
-              <div className="h1-summary-card" style={{ '--accent': '#f1c40f', '--tint': '#fff8dd' }}><span className="h1-summary-card__icon"><LayoutDashboard size={18} /></span><span className="h1-summary-card__label">Pending</span><strong className="h1-summary-card__value">{pendingQueue.length}</strong></div>
-              <div className="h1-summary-card" style={{ '--accent': '#27ae60', '--tint': '#eafaf1' }}><span className="h1-summary-card__icon"><FileText size={18} /></span><span className="h1-summary-card__label">Processed</span><strong className="h1-summary-card__value">{h1Reports.length}</strong></div>
-              <div className="h1-summary-card" style={{ '--accent': '#5d5fef', '--tint': '#eeefff' }}><span className="h1-summary-card__icon"><Users size={18} /></span><span className="h1-summary-card__label">Personnel</span><strong className="h1-summary-card__value">{personnel.length}</strong></div>
-              <div className="h1-summary-card" style={{ '--accent': '#e76f51', '--tint': '#fff0ec' }}><span className="h1-summary-card__icon"><ArrowUpRight size={18} /></span><span className="h1-summary-card__label">Referred</span><strong className="h1-summary-card__value">{h1Reports.filter(report => report.referrals === 'Yes').length}</strong></div>
+            <div className="h1-page-title">
+              <div>
+                <h1>Warbixinnada H1</h1>
+                <p>Xogta caafimaadka iyo diiwaanka askarta Horinta 1aad.</p>
+              </div>
+              <button className="h1-secondary-button" onClick={fetchData}><Check size={16} /> Refresh</button>
             </div>
-            <div className="h1-panel"><div className="h1-panel__heading"><h2>Medical reports</h2><span className="h1-status h1-status--neutral">{h1Reports.length} records</span></div>
-              {h1Reports.length === 0 ? <div className="h1-empty"><FileText size={34} /><p>No H1 medical reports have been recorded yet.</p></div> : <div className="h1-table-wrap"><table className="h1-table"><thead><tr><th>Personnel</th><th>Diagnosis</th><th>Limitation</th><th>Days</th><th>Referral</th><th>Date</th></tr></thead><tbody>{h1Reports.map(report => <tr key={report.id}><td><strong>{report.name || 'Unnamed'}</strong><br /><small>{report.sarkaal_id}</small></td><td>{report.diagnosis || 'Not specified'}</td><td>{report.limitation || 'None'}</td><td>{report.days || 0}</td><td><span className={`h1-status ${report.referrals === 'Yes' ? 'h1-status--referred' : 'h1-status--complete'}`}>{report.referrals === 'Yes' ? 'Referred' : 'Processed'}</span></td><td>{report.created_at ? new Date(report.created_at).toLocaleDateString() : '-'}</td></tr>)}</tbody></table></div>}
+            <div className="h1-summary-grid">
+              <div className="h1-summary-card"><span className="h1-summary-card__icon"><LayoutDashboard size={18} /></span><span className="h1-summary-card__label">Pending</span><strong className="h1-summary-card__value">{pendingQueue.length}</strong></div>
+              <div className="h1-summary-card"><span className="h1-summary-card__icon"><FileText size={18} /></span><span className="h1-summary-card__label">Processed</span><strong className="h1-summary-card__value">{h1Reports.length}</strong></div>
+              <div className="h1-summary-card"><span className="h1-summary-card__icon"><Users size={18} /></span><span className="h1-summary-card__label">Personnel</span><strong className="h1-summary-card__value">{personnel.length}</strong></div>
+              <div className="h1-summary-card"><span className="h1-summary-card__icon"><ArrowUpRight size={18} /></span><span className="h1-summary-card__label">Referred</span><strong className="h1-summary-card__value">{h1Reports.filter(r => r.referrals === 'Yes').length}</strong></div>
+            </div>
+            <div className="h1-panel">
+              <div className="h1-panel__heading">
+                <h2>Diiwaanka Baaritaannada</h2>
+                <span className="h1-status h1-status--neutral">{h1Reports.length} records</span>
+              </div>
+              {h1Reports.length === 0 ? (
+                <div className="h1-empty"><FileText size={34} /><p>No H1 medical reports have been recorded yet.</p></div>
+              ) : (
+                <div className="h1-table-wrap">
+                  <table className="h1-table">
+                    <thead>
+                      <tr><th>Askari</th><th>Baaritaanka</th><th>Xaddidaadda</th><th>Maalmaha</th><th>Referral</th><th>Taariikh</th></tr>
+                    </thead>
+                    <tbody>
+                      {h1Reports.map(report => (
+                        <tr key={report.id}>
+                          <td><strong>{report.name || 'Unnamed'}</strong><br /><small>{report.sarkaal_id}</small></td>
+                          <td>{report.diagnosis || 'Not specified'}</td>
+                          <td>{report.limitation || 'None'}</td>
+                          <td>{report.days || 0}</td>
+                          <td>
+                            <span className={`h1-status ${report.referrals === 'Yes' ? 'h1-status--referred' : 'h1-status--complete'}`}>
+                              {report.referrals === 'Yes' ? 'Referred' : 'Processed'}
+                            </span>
+                          </td>
+                          <td>{report.created_at ? new Date(report.created_at).toLocaleDateString() : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
 
+        {/* ── ANALYTICS TAB ── */}
         {activePage === 'analytics' && (
-          <div className="h1-page"><div className="h1-page-title"><div><h1>H1 Analytics</h1><p>A clear view of Horinta 1aad workload and medical activity.</p></div></div>
-            <div className="h1-summary-grid">
-              {[['Pending', analyticsData.totalPending, '#f1c40f', LayoutDashboard], ['Processed', analyticsData.totalProcessed, '#27ae60', CheckCheck], ['Personnel', analyticsData.totalPersonnel, '#5d5fef', Users], ['Referred', analyticsData.totalReferred, '#e76f51', ArrowUpRight]].map(([label, value, color, Icon]) => <div className="h1-summary-card" key={label} style={{ '--accent': color, '--tint': `${color}18` }}><span className="h1-summary-card__icon"><Icon size={18} /></span><span className="h1-summary-card__label">{label}</span><strong className="h1-summary-card__value">{value || 0}</strong></div>)}
+          <div className="h1-page">
+            <div className="h1-page-title">
+              <div>
+                <h1>Analytics Horinta 1aad</h1>
+                <p>Muuqaal guud oo ku saabsan culeyska shaqo iyo dhaqdhaqaaqa caafimaadka.</p>
+              </div>
             </div>
-            <div className="h1-chart-grid"><div className="h1-panel"><div className="h1-panel__heading"><h3>Medical activity by month</h3><FileText size={18} color="#5d5fef" /></div><div className="h1-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={analyticsData.monthlyActivity}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#edf2f7" /><XAxis dataKey="name" axisLine={false} tickLine={false} /><YAxis allowDecimals={false} axisLine={false} tickLine={false} /><Tooltip /><Bar dataKey="value" name="Reports" fill="#5d5fef" radius={[5, 5, 0, 0]} /></BarChart></ResponsiveContainer></div></div>
-              <div className="h1-panel"><div className="h1-panel__heading"><h3>Queue status</h3><Activity size={18} color="#27ae60" /></div><div className="h1-chart"><ResponsiveContainer width="100%" height="100%"><RechartsPieChart><Pie data={analyticsData.statusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={58} outerRadius={92} paddingAngle={3}>{(analyticsData.statusDistribution || []).map((entry, index) => <Cell key={entry.name} fill={statusColors[index % statusColors.length]} />)}</Pie><Tooltip /></RechartsPieChart></ResponsiveContainer></div>{(analyticsData.statusDistribution || []).length === 0 && <div className="h1-empty">No queue activity recorded.</div>}</div>
+            <div className="h1-summary-grid">
+              {[
+                ['Pending', analyticsData.totalPending || 0, LayoutDashboard],
+                ['Processed', analyticsData.totalProcessed || 0, CheckCheck],
+                ['Personnel', analyticsData.totalPersonnel || 0, Users],
+                ['Referred', analyticsData.totalReferred || 0, ArrowUpRight]
+              ].map(([label, value, Icon]) => (
+                <div className="h1-summary-card" key={label}>
+                  <span className="h1-summary-card__icon"><Icon size={18} /></span>
+                  <span className="h1-summary-card__label">{label}</span>
+                  <strong className="h1-summary-card__value">{value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="h1-chart-grid">
+              <div className="h1-panel">
+                <div className="h1-panel__heading">
+                  <h3>Dhaqdhaqaaqa Billeed</h3>
+                  <FileText size={18} color={colors.primary} />
+                </div>
+                <div className="h1-chart">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={analyticsData.monthlyActivity}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
+                      <Tooltip />
+                      <Bar dataKey="value" name="Reports" fill={colors.primary} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="h1-panel">
+                <div className="h1-panel__heading">
+                  <h3>Xaaladda Safka</h3>
+                  <Activity size={18} color={colors.primary} />
+                </div>
+                <div className="h1-chart">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPieChart>
+                      <Pie data={analyticsData.statusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={58} outerRadius={92} paddingAngle={3}>
+                        {(analyticsData.statusDistribution || []).map((entry, index) => (
+                          <Cell key={entry.name} fill={chartColors[index % chartColors.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {activePage === 'settings' && (
-          <div className="h1-page"><div className="h1-page-title"><div><h1>H1 Settings</h1><p>Manage your H1 account, security, and appearance.</p></div></div><div className="h1-settings-grid"><div className="h1-panel h1-profile-card"><img className="h1-profile-image" src={previewUrl || (loggedInUser.pic ? `http://localhost:5000/uploads/${loggedInUser.pic}` : '/assets/profiles/default.png')} alt="H1 profile" /><strong>{settingsUsername || 'H1 user'}</strong><label className="h1-secondary-button"><Camera size={16} /> Change picture<input type="file" hidden accept="image/*" onChange={event => { const file = event.target.files?.[0]; if (file) { setNewProfilePic(file); setPreviewUrl(URL.createObjectURL(file)); } }} /></label></div><div className="h1-panel"><div className="h1-panel__heading"><h3>Profile details</h3><User size={18} color="#5d5fef" /></div><div className="h1-form"><label htmlFor="h1-username">Username</label><input id="h1-username" value={settingsUsername} onChange={event => setSettingsUsername(event.target.value)} /><button className="h1-primary-button" onClick={saveProfileSettings} disabled={settingsSaving}><Save size={16} />{settingsSaving ? 'Saving...' : 'Save changes'}</button></div><div className="h1-panel__heading" style={{ marginTop: 30 }}><h3>Password and security</h3><Shield size={18} color="#5d5fef" /></div><div className="h1-form"><input type="password" placeholder="Current password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} /><input type="password" placeholder="New password" value={newPassword} onChange={event => setNewPassword(event.target.value)} /><button className="h1-secondary-button" onClick={savePasswordSettings}><Lock size={16} /> Update password</button></div><div className="h1-panel__heading" style={{ marginTop: 30 }}><h3>Appearance</h3><Monitor size={18} color="#5d5fef" /></div><button className="h1-secondary-button" onClick={() => setDarkMode(value => !value)}><Moon size={16} /> {darkMode ? 'Use light mode' : 'Use dark mode'}</button></div></div></div>
-        )}
-
-        {activePage === 'dashboard' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-            <div style={cardStyle}>
-              <h3 style={{ color: '#e67e22', marginTop: 0 }}>1. Safka MO (Pending)</h3>
+        {/* ── ASKAR (PERSONNEL) TAB ── */}
+        {activePage === 'askar' && (
+          <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, color: colors.text, fontSize: '16px', fontWeight: '700' }}>Xogta Guud ee Askarta</h2>
+              <span style={{ fontSize: '12px', color: colors.textMuted }}>Wadarta: <strong>{data.length}</strong></span>
+            </div>
+            
+            <div style={{ overflowX: 'auto' }}>
               <table style={tableStyle}>
                 <thead>
-                  <tr style={{ background: '#f8f9fa', textAlign: 'left' }}>
-                    <th style={thStyle}>Pic</th><th style={thStyle}>Personnel</th><th style={thStyle}>Sarkaal ID</th><th style={thStyle}>Weight</th><th style={thStyle}>Blood</th><th style={thStyle}>Height</th><th style={thStyle}>Workflow</th>
+                  <tr style={tableHeaderStyle}>
+                    <th style={tableHeaderStyle}>No</th>
+                    <th style={tableHeaderStyle}>Sawir</th>
+                    <th style={tableHeaderStyle}>ID</th>
+                    <th style={tableHeaderStyle}>Magaca</th>
+                    <th style={tableHeaderStyle}>Culays</th>
+                    <th style={tableHeaderStyle}>Dhiig</th>
+                    <th style={tableHeaderStyle}>Ficil</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {pendingQueue.map(item => (
-                    <tr key={item.sarkaal_data_id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={tdStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%' }} alt="profile" /></td>
-                      <td style={tdStyle}><strong>{item.name}</strong><br /><small>Record #{item.sarkaal_data_id}</small></td>
-                      <td style={tdStyle}>{item.sarkaal_id}</td>
-                      <td style={tdStyle}>{item.culays ?? '-'} kg</td>
-                      <td style={tdStyle}>{item.dhiiga || '-'}</td>
-                      <td style={tdStyle}>{item.dhirirka ?? '-'}</td>
-                      <td style={{ ...tdStyle, color: '#e67e22', fontWeight: 'bold' }}>Pending for H1</td>
+                  {data.map((item, index) => (
+                    <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                      <td style={tableCellStyle}>{index + 1}</td>
+                      <td style={tableCellStyle}>
+                        <img 
+                          src={`http://localhost:5000/${item.profile_pic}`} 
+                          alt="profile" 
+                          style={{ width: '34px', height: '34px', borderRadius: borderRadius.sm, objectFit: 'cover', border: `1px solid ${colors.border}` }}
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                        />
+                      </td>
+                      <td style={{ ...tableCellStyle, fontWeight: '600' }}>{item.sarkaal_id}</td>
+                      <td style={tableCellStyle}>{item.name}</td>
+                      <td style={tableCellStyle}>{item.culays} kg</td>
+                      <td style={tableCellStyle}>
+                        <span style={{ ...badgeStyle, backgroundColor: '#fef2f2', color: colors.error, border: '1px solid #fecdd3' }}>
+                          {item.dhiiga}
+                        </span>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <button
+                          onClick={() => { setViewedSarkaal(item); setActivePage('view'); }}
+                          style={{ ...buttonSecondaryStyle, padding: '5px 12px', fontSize: '12px' }}
+                        >
+                          View
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
-            <div style={cardStyle}>
-              <h3 style={{ color: '#27ae60' }}>Warbixinnada Baaritaanka (Active Records)</h3>
-              <table style={tableStyle}>
-                <thead>
-                  <tr style={{ background: '#1a2a6c', color: 'white' }}>
-                    <th style={thStyle}>Pic</th><th style={thStyle}>ID</th><th style={thStyle}>Magaca</th><th style={thStyle}>Limitation</th><th style={thStyle}>Remaining</th><th style={thStyle}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeRecords.reduce((acc, current) => {
-                    const xogtaHore = acc.find(item => item.sarkaal_id === current.sarkaal_id);
-                    if (xogtaHore) {
-                      xogtaHore.days = parseInt(xogtaHore.days) + parseInt(current.days);
-                      return acc;
-                    } else {
-                      return [...acc, { ...current }];
-                    }
-                  }, []).map((report) => {
-                    const maanta = new Date();
-                    const taariikhdaLaQoray = new Date(report.created_at);
-                    const dhamaadka = new Date(taariikhdaLaQoray);
-                    dhamaadka.setDate(dhamaadka.getDate() + parseInt(report.days));
-                    const maalmahaHadhay = Math.ceil((dhamaadka - maanta) / (1000 * 60 * 60 * 24));
-
-                    if (maalmahaHadhay <= 0) return null;
-
-                    return (
-                      <tr key={report.id} style={{ borderBottom: '1px solid #eee' }}>
-                        <td style={tdStyle}><img src={`http://localhost:5000/${report.profile_pic}`} width="40" height="40" style={{borderRadius: '50%'}} alt="profile" /></td>
-                        <td style={tdStyle}>{report.sarkaal_id}</td>
-                        <td style={tdStyle}>{report.name}</td>
-                        <td style={tdStyle}><b>{report.limitation}</b></td>
-                        <td style={tdStyle}>
-                          <span style={{ color: maalmahaHadhay <= 1 ? 'red' : '#27ae60', fontWeight: 'bold' }}>
-                            {maalmahaHadhay} Days
-                          </span>
-                        </td>
-                        <td style={tdStyle}><span style={{ color: '#27ae60' }}>● Active</span></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
           </div>
         )}
 
-        {/* ASKAR PAGE */}
-        {activePage === 'askar' && (
-          <div style={cardStyle}>
-            <h2 style={{ color: '#1a2e26', marginBottom: '25px' }}>Xogta Guud ee Askarta</h2>
-            
-            <div style={{ overflowX: 'auto' }}>
-              <table style={tableStyle}>
-                <thead>
-                  <tr style={{ background: '#1a2a6c', color: '#fff', textAlign: 'left' }}>
-                    <th style={thStyle}>No</th><th style={thStyle}>Pic</th><th style={thStyle}>ID</th><th style={thStyle}>Name</th><th style={thStyle}>Culays</th><th style={thStyle}>Dhiiga</th><th style={thStyle}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((item, index) => {
-                    const isHovered = hoveredRowId === item.id;
-                    return (
-                      <tr 
-                        key={item.id} 
-                        onMouseEnter={() => setHoveredRowId(item.id)}
-                        onMouseLeave={() => setHoveredRowId(null)}
-                        style={{ ...rowStyle, transform: isHovered ? 'scale(1.005)' : 'scale(1)' }}
-                      >
-                        <td style={tdStyle}>{index + 1}</td>
-                        <td style={tdStyle}>
-  <img 
-    src={`http://localhost:5000/${item.profile_pic}`} 
-    alt="profile" 
-    style={{ 
-      width: '45px', 
-      height: '45px',     // Fixed height
-      borderRadius: '8px',
-      objectFit: 'cover', // Sawirku inuu isku dhelli tirnaado
-      transition: '0.3s',
-      transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-      border: isHovered ? '2px solid #27ae60' : '2px solid transparent'
-    }} 
-  />
-</td>
-                        <td style={tdStyle}>{item.sarkaal_id}</td>
-                        <td style={tdStyle}>{item.name}</td>
-                        <td style={tdStyle}>{item.culays} kg</td>
-                        <td style={tdStyle}>{item.dhiiga}</td>
-                        <td style={tdStyle}>
-                          <button onClick={() => { setViewedSarkaal(item); setActivePage('view'); }} style={viewBtn}>View</button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* VIEW PAGE */}
+        {/* ── VIEW SINGLE SARKAL TAB ── */}
         {activePage === 'view' && viewedSarkaal && (
-          <div style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {(() => {
               const totalRestDays = medicalReports
                 .filter(r => r.sarkaal_id === viewedSarkaal.sarkaal_id && r.limitation === 'Yattak Istirihat')
@@ -927,44 +655,87 @@ const sendMessage = async (receiverId) => {
 
               return (
                 <>
-                  <button onClick={() => setActivePage('askar')} style={backBtn}>⬅ Back to List</button>
+                  <button
+                    onClick={() => setActivePage('askar')}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      color: colors.primary,
+                      fontWeight: '700',
+                      fontSize: '14px',
+                      padding: 0,
+                    }}
+                  >
+                    <ArrowLeft size={16} />
+                    <span>Ka Noqo (Ku noqo Liiska)</span>
+                  </button>
                   
-                  <div style={profileHeaderCard}>
-                    <img src={`http://localhost:5000/${viewedSarkaal.profile_pic}`} style={profileImageLg} alt="profile" />
+                  <div style={{
+                    ...cardStyle,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '24px',
+                    padding: '24px',
+                  }}>
+                    <img 
+                      src={`http://localhost:5000/${viewedSarkaal.profile_pic}`} 
+                      style={{
+                        width: '90px',
+                        height: '90px',
+                        borderRadius: borderRadius.lg,
+                        objectFit: 'cover',
+                        border: `2px solid ${colors.border}`,
+                      }} 
+                      alt="profile" 
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                    />
                     <div>
-                      <h1 style={{ color: '#1a2a6c', margin: 0 }}>{viewedSarkaal.name}</h1>
-                      <p>Sarkaal ID: <b>{viewedSarkaal.sarkaal_id}</b></p>
+                      <h2 style={{ margin: 0, color: colors.text, fontSize: '20px', fontWeight: '800' }}>{viewedSarkaal.name}</h2>
+                      <p style={{ margin: '4px 0 10px', color: colors.textMuted, fontSize: '13px' }}>
+                        Sarkaal ID: <strong>{viewedSarkaal.sarkaal_id}</strong>
+                      </p>
                       
-                      <div style={{ display: 'flex', gap: '15px' }}>
-                        <div style={visitBadge}>Visits: {medicalReports.filter(r => r.sarkaal_id === viewedSarkaal.sarkaal_id).length}</div>
-                        <div style={{ ...daysLabel, background: totalRestDays >= 40 ? '#f8d7da' : '#fef9e7' }}>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <span style={{ ...badgeStyle, backgroundColor: colors.primaryLight, color: colors.primary, border: `1px solid ${colors.primaryBorder}` }}>
+                          Visits: {medicalReports.filter(r => r.sarkaal_id === viewedSarkaal.sarkaal_id).length}
+                        </span>
+                        <span style={{
+                          ...badgeStyle,
+                          backgroundColor: totalRestDays >= 40 ? '#fef2f2' : '#f8fafc',
+                          color: totalRestDays >= 40 ? colors.error : colors.textSecondary,
+                          border: `1px solid ${totalRestDays >= 40 ? '#fecdd3' : colors.border}`,
+                          fontWeight: '700',
+                        }}>
                           Total Rest: {totalRestDays} Maalmood {totalRestDays >= 40 && "⚠️"}
-                        </div>
+                        </span>
                       </div>
-                      
-                      {totalRestDays >= 45 && (
-                        <div style={alertBox} onClick={() => alert("Notification sent to Commander")}>
-                          🔔 Ogeysiis: Sarkaalkaan wuxuu gaaray xadkii loogu talagalay.
-                        </div>
-                      )}
                     </div>
                   </div>
 
-                  <div style={{ ...cardStyle, marginTop: '20px' }}>
-                    <h3 style={{ borderBottom: '2px solid #fdbb2d', paddingBottom: '10px' }}>Medical History</h3>
+                  <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}` }}>
+                      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>Taariikhda Baaritaannada</h3>
+                    </div>
                     <table style={tableStyle}>
                       <thead>
-                        <tr style={{ background: '#f8f9fa' }}>
-                          <th style={thStyle}>Date</th><th style={thStyle}>Diagnosis</th><th style={thStyle}>Limitation</th><th style={thStyle}>Days</th>
+                        <tr style={tableHeaderStyle}>
+                          <th style={tableHeaderStyle}>Taariikh</th>
+                          <th style={tableHeaderStyle}>Diagnosis</th>
+                          <th style={tableHeaderStyle}>Limitation</th>
+                          <th style={tableHeaderStyle}>Days</th>
                         </tr>
                       </thead>
                       <tbody>
                         {medicalReports.filter(r => r.sarkaal_id === viewedSarkaal.sarkaal_id).map((r, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                            <td style={tdStyle}>{new Date(r.created_at).toLocaleDateString()}</td>
-                            <td style={{ ...tdStyle, color: 'red', fontWeight: 'bold' }}>{r.diagnosis}</td>
-                            <td style={tdStyle}>{r.limitation}</td>
-                            <td style={tdStyle}>{r.days} Maalmood</td>
+                          <tr key={i} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                            <td style={tableCellStyle}>{new Date(r.created_at).toLocaleDateString()}</td>
+                            <td style={{ ...tableCellStyle, color: colors.error, fontWeight: '600' }}>{r.diagnosis}</td>
+                            <td style={tableCellStyle}>{r.limitation}</td>
+                            <td style={tableCellStyle}>{r.days} Maalmood</td>
                           </tr>
                         ))}
                       </tbody>
@@ -975,108 +746,64 @@ const sendMessage = async (receiverId) => {
             })()}
           </div>
         )}
-      </main>
-             {false && showMsgModal && (
-  <div style={modalOverlayStyle}>
-    <div style={{ ...cardStyle, width: '600px', display: 'flex', height: '450px', padding: 0, overflow: 'hidden' }}>
-      
-      {/* DHINACA BIDIX: Liiska Dadka */}
-      <div style={{ width: '200px', borderRight: '1px solid #eee', background: '#f9f9f9', padding: '15px' }}>
-        <h4 style={{ marginBottom: '15px' }}>Xiriirada</h4>
-        {[].map(user => (
-          <div 
-            key={user.id}
-            onClick={() => setSelectedUser(user)}
-            style={{
-              padding: '10px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              backgroundColor: selectedUser?.id === user.id ? '#5d5fef' : 'transparent',
-              color: selectedUser?.id === user.id ? 'white' : '#333',
-              marginBottom: '5px',
-              fontSize: '14px',
-              transition: '0.3s'
-            }}
-          >
-            {user.name}
-          </div>
-        ))}
-      </div>
 
-      {/* DHINACA MIDIG: Meesha Fariinta */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '20px', position: 'relative' }}>
-        <X 
-          size={20} 
-          style={{ position: 'absolute', right: '15px', top: '15px', cursor: 'pointer' }} 
-          onClick={() => { setShowMsgModal(false); setSelectedUser(null); }} 
-        />
-        
-        {selectedUser ? (
-          <>
-            <div style={{ borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>
-              <h3 style={{ margin: 0 }}>Ku: {selectedUser.name}</h3>
-              <small style={{ color: '#888' }}>{selectedUser.role}</small>
+        {/* ── SETTINGS TAB ── */}
+        {activePage === 'settings' && (
+          <div className="h1-page">
+            <div className="h1-page-title">
+              <div>
+                <h1>Habaynta Akoonka (H1)</h1>
+                <p>Maamul faahfaahinta akoonkaaga iyo amniga.</p>
+              </div>
             </div>
-
-            <textarea 
-              style={{ ...textAreaStyle, flex: 1, border: 'none', outline: 'none', resize: 'none' }} 
-              placeholder={`U dir fariin ${selectedUser.name}...`}
-              value={messageBody}
-              onChange={(e) => setMessageBody(e.target.value)}
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <label style={{ cursor: 'pointer', color: '#5d5fef' }}>
-                  <Paperclip size={22} />
-                  <input type="file" style={{ display: 'none' }} onChange={(e) => setMessageFile(e.target.files[0])} />
+            <div className="h1-settings-grid">
+              <div className="h1-panel h1-profile-card">
+                <img 
+                  className="h1-profile-image" 
+                  src={previewUrl || (loggedInUser.pic ? `http://localhost:5000/uploads/${loggedInUser.pic}` : '/assets/profiles/default.svg')} 
+                  alt="H1 profile" 
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                />
+                <strong>{settingsUsername || 'H1 User'}</strong>
+                <label className="h1-secondary-button">
+                  <Camera size={16} /> Bedel Sawirka
+                  <input type="file" hidden accept="image/*" onChange={event => { const file = event.target.files?.[0]; if (file) { setNewProfilePic(file); setPreviewUrl(URL.createObjectURL(file)); } }} />
                 </label>
               </div>
-              <button 
-                onClick={() => sendMessage(selectedUser.id)} 
-                style={{ ...sendBtnStyle, padding: '10px 25px' }}
-              >
-                <Send size={18} /> Dir
-              </button>
+
+              <div className="h1-panel">
+                <div className="h1-panel__heading">
+                  <h3>Xogta Guud</h3>
+                  <User size={18} color={colors.primary} />
+                </div>
+                <div className="h1-form">
+                  <label htmlFor="h1-username">Username</label>
+                  <input id="h1-username" value={settingsUsername} onChange={event => setSettingsUsername(event.target.value)} />
+                  <button className="h1-primary-button" onClick={saveProfileSettings} disabled={settingsSaving}>
+                    <Save size={16} />{settingsSaving ? 'Keydinaya...' : 'Keydi Isbedelka'}
+                  </button>
+                </div>
+
+                <div className="h1-panel__heading" style={{ marginTop: 30 }}>
+                  <h3>Password-ka & Amniga</h3>
+                  <Shield size={18} color={colors.primary} />
+                </div>
+                <div className="h1-form">
+                  <input type="password" placeholder="Password-ka hadda" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} />
+                  <input type="password" placeholder="Password-ka cusub" value={newPassword} onChange={event => setNewPassword(event.target.value)} />
+                  <button className="h1-secondary-button" onClick={savePasswordSettings}>
+                    <Lock size={16} /> Cusboonaysii Password
+                  </button>
+                </div>
+              </div>
             </div>
-          </>
-        ) : (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#999' }}>
-            Fadlan dooro qofka aad fariinta u dirayso
           </div>
         )}
-      </div>
+      </main>
 
-    </div>
-  </div>
-)}
-      <style>{`
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        @media print { .no-print { display: none !important; } .main-content { margin-left: 0 !important; width: 100% !important; } }
-      `}</style>
+      <FariimahaModal isOpen={showMsgModal} onClose={() => setShowMsgModal(false)} currentUser={activeUser} />
     </div>
   );
 }
 
-// --- REFINED STYLES ---
-const logoArea = { textAlign: 'center', borderBottom: '1px solid #2e3b6e', marginBottom: '10px' };
-const navItem = { padding: '15px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#a0aec0', transition: '0.3s' };
-const navActive = { ...navItem, backgroundColor: '#2d3748', color: 'white', borderLeft: '4px solid #4a90e2' };
-const cardStyle = { background: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' };
-const headerCard = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', background: 'white', padding: '15px 25px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
-const badgeStyle = { background: '#fee2e2', color: '#ef4444', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', border: '1px solid #fecaca' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse' };
-const thStyle = { padding: '12px', borderBottom: '1px solid #eee', textAlign: 'left' };
-const tdStyle = { padding: '12px', borderBottom: '1px solid #f1f1f1' };
-const rowStyle = { transition: '0.3s', cursor: 'default' };
-const viewBtn = { background: '#007bff', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' };
-const refreshBtn = { background: '#1e2a5a', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '6px', cursor: 'pointer' };
-const backBtn = { marginBottom: '20px', padding: '10px 20px', background: '#6c757d', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' };
-const profileHeaderCard = { display: 'flex', background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', alignItems: 'center', gap: '40px', marginBottom: '30px' };
-const profileImageLg = { width: '150px', height: '150px', borderRadius: '15px', objectFit: 'cover', border: '5px solid #1a2a6c' };
-const visitBadge = { padding: '10px 20px', background: '#e8f4fd', borderRadius: '10px', fontWeight: 'bold', color: '#1a2a6c' };
-const daysLabel = { padding: '10px 20px', borderRadius: '10px', border: '1px solid #f39c12', fontWeight: 'bold' };
-const alertBox = { marginTop: '15px', padding: '15px', background: '#dc3545', color: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', animation: 'pulse 2s infinite' };
-const logoutBtn = { background: '#e74c3c', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', position: 'absolute', transition: '0.3s' };
-
-export default Horinta1Dashboard;
+export default Horinta1;

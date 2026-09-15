@@ -1,27 +1,53 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { 
+  Shield, 
+  Lock, 
+  User, 
+  ArrowRight, 
+  CheckCircle2, 
+  Activity, 
+  KeyRound, 
+  Mail, 
+  Phone, 
+  ArrowLeft, 
+  X 
+} from 'lucide-react';
+import { 
+  colors, 
+  borderRadius, 
+  typography, 
+  inputStyle, 
+  labelStyle, 
+  buttonPrimaryStyle, 
+  buttonSecondaryStyle,
+  modalOverlayStyle,
+  modalContentStyle,
+  modalHeaderStyle,
+  modalTitleStyle
+} from './designSystem';
 
 function LoginPage({ onLogin }) {
-  // --- STATES-KA LOGIN-KA ---
+  // --- LOGIN STATES ---
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // --- STATES-KA FORGOT PASSWORD (TALLAABADA CUSUB) ---
+  // --- FORGOT PASSWORD STATES ---
   const [showForgot, setShowForgot] = useState(false);
-  const [forgotStep, setForgotStep] = useState(1); // 1: Search, 2: Select Method, 3: Verify & Reset
-  const [identifier, setIdentifier] = useState(''); // Email ama Username
+  const [forgotStep, setForgotStep] = useState(1); // 1: Search, 2: Select Method, 3: Verify OTP, 4: Reset Password
+  const [identifier, setIdentifier] = useState('');
   const [foundUser, setFoundUser] = useState(null);
-  const [resetMethod, setResetMethod] = useState(''); // 'email' ama 'phone'
+  const [resetMethod, setResetMethod] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [otpInput, setOtpInput] = useState("");
-  const [step, setStep] = useState(1); 
+  const [otpInput, setOtpInput] = useState('');
 
-  // 1. FUNCTION-KA LOGIN-KA (SI GUUL LEH AYAA LOO KABAY)
+  // 1. LOGIN HANDLER
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     try {
       const response = await axios.post('http://localhost:5000/api/login', {
         username: username,
@@ -39,7 +65,6 @@ function LoginPage({ onLogin }) {
           phone: response.data.phone   
         };
         
-        // Kaydi ka hor inta nidaamku uusan gudbin (sessionStorage only for per-tab isolation)
         sessionStorage.setItem('sessionId', response.data.sessionId);
         sessionStorage.setItem('user', JSON.stringify(userData));
         sessionStorage.setItem('currentUser', response.data.role);
@@ -53,7 +78,7 @@ function LoginPage({ onLogin }) {
     }
   };
 
-  // 2. FORGOT PASSWORD: RAADINTA USER-KA
+  // 2. FORGOT PASSWORD: SEARCH USER
   const handleSearchUser = async () => {
     if (!identifier) return alert("Fadlan geli Username ama Email");
     try {
@@ -67,7 +92,7 @@ function LoginPage({ onLogin }) {
     }
   };
 
-  // 3. FORGOT PASSWORD: DIRISTA CODE-KA (OTP)
+  // 3. FORGOT PASSWORD: SEND OTP
   const handleSendOTP = async () => {
     if (!resetMethod) return alert("Fadlan dooro meesha code-ka laguugu soo dirayo");
     try {
@@ -81,50 +106,50 @@ function LoginPage({ onLogin }) {
     }
   };
 
+  // 4. FORGOT PASSWORD: VERIFY OTP
   const handleVerifyOTP = async () => {
     try {
-        const res = await axios.post('http://localhost:5000/api/verify-otp', {
-            userId: foundUser.id,
-            otp: otpInput
-        });
+      const res = await axios.post('http://localhost:5000/api/verify-otp', {
+        userId: foundUser.id,
+        otp: otpInput
+      });
 
-        if (res.data.success) {
-            alert("Code-ka waa la xaqiijiyay! Hadda dooro password cusub.");
-            setForgotStep(4); 
-        }
+      if (res.data.success) {
+        setForgotStep(4); 
+      }
     } catch (err) {
-        alert(err.response?.data?.message || "Code-ku waa khalad!");
+      alert(err.response?.data?.message || "Code-ku waa khalad!");
     }
   };
 
-  // REFRESH COMPATIBLE FOR QUICK LOGIN
+  // QUICK LOGIN (IF USER REMEMBERS PASSWORD)
   const handleQuickLogin = async () => {
     try {
-        const res = await axios.post('http://localhost:5000/api/login', {
-            username: foundUser.username,
-            password: password
-        });
-        if (res.data.success) {
-            const userData = {
-              id: res.data.id,
-              username: res.data.username,
-              pic: res.data.pic,
-              role: res.data.role,
-              email: res.data.email,
-              phone: res.data.phone
-            };
-           // Kaydi ka hor inta nidaamku uusan gudbin (sessionStorage only for per-tab isolation)
-           sessionStorage.setItem('sessionId', res.data.sessionId);
-           sessionStorage.setItem('user', JSON.stringify(userData));
-           sessionStorage.setItem('currentUser', res.data.role);
+      const res = await axios.post('http://localhost:5000/api/login', {
+        username: foundUser.username,
+        password: password
+      });
+      if (res.data.success) {
+        const userData = {
+          id: res.data.id,
+          username: res.data.username,
+          pic: res.data.pic,
+          role: res.data.role,
+          email: res.data.email,
+          phone: res.data.phone
+        };
+        sessionStorage.setItem('sessionId', res.data.sessionId);
+        sessionStorage.setItem('user', JSON.stringify(userData));
+        sessionStorage.setItem('currentUser', res.data.role);
 
-            onLogin(res.data.role, userData, res.data.sessionId);
-        }
+        onLogin(res.data.role, userData, res.data.sessionId);
+      }
     } catch (err) {
-        alert("Username ama Password-ka waa khalad!");
+      alert("Username ama Password-ka waa khalad!");
     }
   };
 
+  // 5. RESET PASSWORD FINALIZE
   const handleResetFinal = async () => {
     if (!otpInput || !newPassword) return alert("Fadlan geli code-ka iyo password-ka cusub");
 
@@ -145,243 +170,474 @@ function LoginPage({ onLogin }) {
     }
   };
 
-  // --- UI-GA MODAL-KA FORGOT PASSWORD ---
+  // --- FORGOT PASSWORD MODAL ---
   const renderForgotModal = () => (
-    <div style={modalOverlay}>
-      <div style={modalContent}>
-        {forgotStep === 1 && (
-          <>
-            <h3 style={{marginTop: 0}}>Find Your Account</h3>
-            <hr />
-            <p style={{fontSize: '14px', color: '#606770'}}>Geli email-kaaga ama username-kaaga si aad u raadiso account-kaaga.</p>
-            <input 
-              style={inputStyle} 
-              placeholder="Email address or username" 
-              onChange={(e) => setIdentifier(e.target.value)} 
-            />
-            <div style={btnGroup}>
-              <button onClick={() => setShowForgot(false)} style={cancelBtn}>Cancel</button>
-              <button onClick={handleSearchUser} style={searchBtn}>Search</button>
-            </div>
-          </>
-        )}
-
-        {/* STEP 2: DOORASHADA QAABKA CODE-KA LOO DIRAYO */}
-        {forgotStep === 2 && foundUser && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <button 
-                onClick={() => setForgotStep(1)} 
-                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#606770' }}
+    <div style={modalOverlayStyle}>
+      <div style={{ ...modalContentStyle, maxWidth: '480px' }}>
+        <div style={modalHeaderStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {forgotStep > 1 && (
+              <button
+                type="button"
+                onClick={() => setForgotStep(prev => prev - 1)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.textMuted, padding: '4px' }}
                 title="Dib u noqo"
               >
-                ←
+                <ArrowLeft size={18} />
               </button>
-              <h3 style={{ margin: 0, color: '#1c1e21' }}>Reset Your Password</h3>
-            </div>
+            )}
+            <h3 style={modalTitleStyle}>Dib u Helista Akoonka</h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setShowForgot(false); setForgotStep(1); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.textMuted }}
+          >
+            <X size={18} />
+          </button>
+        </div>
 
-            <hr style={{ border: '0.5px solid #ddd', marginBottom: '15px' }} />
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', margin: '20px 0', padding: '10px', backgroundColor: '#f5f6f7', borderRadius: '8px' }}>
+        {/* STEP 1: IDENTIFIER SEARCH */}
+        {forgotStep === 1 && (
+          <div>
+            <p style={{ fontSize: '13px', color: colors.textMuted, marginBottom: '16px' }}>
+              Geli email-kaaga ama username-kaaga si nidaamku u xaqiijiyo akoonkaaga.
+            </p>
+            <div style={{ marginBottom: '18px' }}>
+              <label style={labelStyle}>Email ama Username</label>
+              <input 
+                style={inputStyle} 
+                placeholder="Tusaale: askar@amis.gov.so" 
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)} 
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowForgot(false)} 
+                style={buttonSecondaryStyle}
+              >
+                Ka Noqo
+              </button>
+              <button 
+                type="button" 
+                onClick={handleSearchUser} 
+                style={buttonPrimaryStyle}
+              >
+                Raadi Akoonka
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: RECOVERY METHOD */}
+        {forgotStep === 2 && foundUser && (
+          <div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px',
+              backgroundColor: colors.primaryLight,
+              borderRadius: borderRadius.md,
+              border: `1px solid ${colors.primaryBorder}`,
+              marginBottom: '18px',
+            }}>
               <img 
-                src={foundUser.pic ? `http://localhost:5000/uploads/${foundUser.pic}` : 'https://via.placeholder.com/50'} 
+                src={foundUser.pic ? `http://localhost:5000/uploads/${foundUser.pic}` : '/assets/profiles/default.svg'} 
                 alt="user" 
-                style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #1877f2' }} 
+                style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primary}` }} 
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
               />
               <div>
-                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{foundUser.username}</div>
-                <div style={{ fontSize: '13px', color: '#606770' }}>AMIS System User</div>
+                <div style={{ fontWeight: '700', fontSize: '14px', color: colors.text }}>{foundUser.username}</div>
+                <div style={{ fontSize: '12px', color: colors.textMuted }}>AMIS System Officer</div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <div style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}>
-                <p style={{ fontSize: '13px', margin: '0 0 8px 0', color: '#1c1e21', fontWeight: '600' }}>Xasuusataa Password-ka?</p>
-                <input 
-                  type="password" 
-                  placeholder="Geli password-kaaga" 
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ddd', boxSizing: 'border-box' }}
-                />
-                <button 
-                  onClick={handleQuickLogin} 
-                  style={{ marginTop: '10px', width: '100%', backgroundColor: '#42b72a', color: 'white', border: 'none', padding: '8px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  Log In
-                </button>
-              </div>
-
-              <p style={{ fontSize: '14px', textAlign: 'center', color: '#606770' }}>--- AMA ---</p>
-
-              <p style={{ fontSize: '14px', fontWeight: '600' }}>Sidee jeceshahay inaan kuu soo dirno code-ka?</p>
-              <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '10px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ ...labelStyle, marginBottom: '8px' }}>Dooro habka code-ka laguugu soo dirayo:</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 12px',
+                  borderRadius: borderRadius.md,
+                  border: `1px solid ${colors.border}`,
+                  cursor: 'pointer',
+                  backgroundColor: resetMethod === 'email' ? colors.primaryLight : colors.white,
+                }}>
                   <input type="radio" name="method" value="email" onChange={(e) => setResetMethod(e.target.value)} />
-                  <span style={{ fontSize: '14px' }}>Send code via email ({foundUser.email})</span>
+                  <Mail size={16} color={colors.primary} />
+                  <span style={{ fontSize: '13px', color: colors.text }}>
+                    Email: <strong>{foundUser.email || 'Lama helin'}</strong>
+                  </span>
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginTop: '12px' }}>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 12px',
+                  borderRadius: borderRadius.md,
+                  border: `1px solid ${colors.border}`,
+                  cursor: 'pointer',
+                  backgroundColor: resetMethod === 'phone' ? colors.primaryLight : colors.white,
+                }}>
                   <input type="radio" name="method" value="phone" onChange={(e) => setResetMethod(e.target.value)} />
-                  <span style={{ fontSize: '14px' }}>Send code via SMS ({foundUser.phone})</span>
+                  <Phone size={16} color={colors.primary} />
+                  <span style={{ fontSize: '13px', color: colors.text }}>
+                    SMS: <strong>{foundUser.phone || 'Lama helin'}</strong>
+                  </span>
                 </label>
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '25px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button 
+                type="button" 
                 onClick={() => setForgotStep(1)} 
-                style={{ padding: '10px 20px', backgroundColor: '#e4e6eb', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}
+                style={buttonSecondaryStyle}
               >
-                Cancel
+                Dib u Noqo
               </button>
               <button 
+                type="button" 
                 onClick={handleSendOTP} 
-                style={{ padding: '10px 25px', backgroundColor: '#1877f2', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}
+                style={buttonPrimaryStyle}
               >
-                Continue
+                Dir Code-ka
               </button>
             </div>
-          </>
+          </div>
         )}
 
-        {/* STEP 3: XAQIIJINTA CODE-KA */}
+        {/* STEP 3: VERIFY SECURITY CODE */}
         {forgotStep === 3 && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <button 
-                onClick={() => setForgotStep(2)} 
-                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#606770' }}
-              >
-                ←
-              </button>
-              <h3 style={{ margin: 0 }}>Enter Security Code</h3>
-            </div>
-            <hr style={{ border: '0.5px solid #ddd' }} />
-            <p style={{ fontSize: '14px', margin: '15px 0' }}>
-              Fadlan geli code-ka 6-da rambar ah ee laguugu soo diray <b>{resetMethod}</b>.
+          <div>
+            <p style={{ fontSize: '13px', color: colors.textMuted, marginBottom: '14px' }}>
+              Fadlan geli 6-da rambar ee laguugu soo diray <strong>{resetMethod.toUpperCase()}</strong>.
             </p>
-            
-            <input 
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box', textAlign: 'center', fontSize: '18px', letterSpacing: '4px' }} 
-              placeholder="Geli Code-ka (6-digits)" 
-              maxLength="6"
-              value={otpInput}
-              onChange={(e) => setOtpInput(e.target.value)} 
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <div style={{ marginBottom: '18px' }}>
+              <input 
+                style={{
+                  ...inputStyle,
+                  height: '44px',
+                  textAlign: 'center',
+                  fontSize: '20px',
+                  letterSpacing: '6px',
+                  fontWeight: '700',
+                }} 
+                placeholder="------" 
+                maxLength="6"
+                value={otpInput}
+                onChange={(e) => setOtpInput(e.target.value)} 
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button 
-                onClick={handleVerifyOTP} 
-                style={{ padding: '10px 25px', backgroundColor: '#1877f2', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                type="button" 
+                onClick={() => setForgotStep(2)} 
+                style={buttonSecondaryStyle}
               >
-                Verify Code
+                Dib u Noqo
+              </button>
+              <button 
+                type="button" 
+                onClick={handleVerifyOTP} 
+                style={buttonPrimaryStyle}
+              >
+                Xaqiiji Code-ka
               </button>
             </div>
-          </>
+          </div>
         )}
 
+        {/* STEP 4: SET NEW PASSWORD */}
         {forgotStep === 4 && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <button 
-                onClick={() => setForgotStep(3)} 
-                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#606770' }}
-              >
-                ←
-              </button>
-              <h3 style={{ margin: 0 }}>Reset Your Password</h3>
-            </div>
-            <hr style={{ border: '0.5px solid #ddd' }} />
-            <p style={{ fontSize: '14px', margin: '15px 0' }}>
-              Code-ka waa la xaqiijiyay. Geli password cusub.
+          <div>
+            <p style={{ fontSize: '13px', color: colors.textMuted, marginBottom: '14px' }}>
+              Code-ka waa la xaqiijiyay. Hadda deji password cusub oo sugan.
             </p>
-
-            <input 
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }} 
-              type="password"
-              placeholder="Geli Password cusub" 
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)} 
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <div style={{ marginBottom: '18px' }}>
+              <label style={labelStyle}>Password Cusub</label>
+              <input 
+                style={inputStyle} 
+                type="password"
+                placeholder="Geli password cusub" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)} 
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button 
+                type="button" 
                 onClick={handleResetFinal} 
-                style={{ padding: '10px 25px', backgroundColor: '#1877f2', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                style={buttonPrimaryStyle}
               >
-                Update Password
+                Cusboonaysii Password-ka
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
   );
 
   return (
-    <div style={containerStyle}>
-      <form onSubmit={handleLogin} style={formStyle}>
-        <h2 style={titleStyle}>AMIS System Login</h2>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: colors.white,
+      fontFamily: typography.fontFamily,
+    }}>
+      {/* ── LEFT SHOWCASE HERO ── */}
+      <div style={{
+        flex: '1 1 50%',
+        backgroundColor: colors.sidebar,
+        color: colors.white,
+        padding: '60px 48px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        position: 'relative',
+        overflow: 'hidden',
+        borderRight: `1px solid ${colors.sidebarBorder}`,
+      }}>
+        {/* Subtle geometric background embellishment */}
+        <div style={{
+          position: 'absolute',
+          top: '-120px',
+          right: '-120px',
+          width: '360px',
+          height: '360px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(30, 58, 102, 0.4) 0%, rgba(11, 29, 51, 0) 70%)',
+          pointerEvents: 'none',
+        }} />
 
-        {error && <p style={errorStyle}>{error}</p>}
-
-        <div style={inputGroupStyle}>
-          <label style={labelStyle}>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={inputStyle}
-            placeholder="Geli Username"
-            required
-          />
+        {/* Top brand header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            backgroundColor: '#16365c',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ffffff',
+          }}>
+            <Shield size={22} strokeWidth={2.2} />
+          </div>
+          <div>
+            <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '0.04em', lineHeight: 1.1 }}>
+              AMIS SYSTEM
+            </div>
+            <div style={{ fontSize: '11px', color: '#93c5fd', letterSpacing: '0.05em', textTransform: 'uppercase', marginTop: '2px' }}>
+              Healthcare & Personnel Management
+            </div>
+          </div>
         </div>
 
-        <div style={inputGroupStyle}>
-          <label style={labelStyle}>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={inputStyle}
-            placeholder="Geli Password"
-            required
-          />
+        {/* Middle Value Proposition */}
+        <div style={{ maxWidth: '440px', margin: '40px 0' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            fontSize: '11px',
+            fontWeight: '600',
+            color: '#93c5fd',
+            marginBottom: '20px',
+          }}>
+            <Activity size={13} />
+            <span>Secure Enterprise Health Portal</span>
+          </div>
+
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: '800',
+            lineHeight: 1.25,
+            color: '#ffffff',
+            marginBottom: '16px',
+          }}>
+            Centralized Medical & Staff Operations
+          </h1>
+
+          <p style={{
+            fontSize: '14px',
+            lineHeight: 1.6,
+            color: '#94a9c4',
+            marginBottom: '28px',
+          }}>
+            AMIS provides unified, role-based records management, diagnostic queues, hospital referral tracking, and secure communications for all division personnel.
+          </p>
+
+          {/* Value points */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <CheckCircle2 size={16} color="#60a5fa" />
+              <span style={{ fontSize: '13px', color: '#e2e8f0' }}>High-integrity encrypted personnel data</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <CheckCircle2 size={16} color="#60a5fa" />
+              <span style={{ fontSize: '13px', color: '#e2e8f0' }}>Real-time medical queue synchronization</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <CheckCircle2 size={16} color="#60a5fa" />
+              <span style={{ fontSize: '13px', color: '#e2e8f0' }}>Integrated multi-company reporting</span>
+            </div>
+          </div>
         </div>
 
-        <button type="submit" disabled={isLoading} style={buttonStyle}>
-          {isLoading ? 'Loading...' : 'Login'}
-        </button>
-
-        <div style={{textAlign: 'center', marginTop: '15px'}}>
-           <button 
-             type="button" 
-             onClick={() => setShowForgot(true)} 
-             style={forgotLinkBtn}
-           >
-             Forgot password?
-           </button>
+        {/* Footer info */}
+        <div style={{ fontSize: '11px', color: '#64748b' }}>
+          &copy; {new Date().getFullYear()} AMIS System. Restricted official access only.
         </div>
-      </form>
+      </div>
+
+      {/* ── RIGHT LOGIN FORM CONTAINER ── */}
+      <div style={{
+        flex: '1 1 50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 32px',
+        backgroundColor: colors.background,
+      }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '400px',
+          backgroundColor: colors.white,
+          borderRadius: borderRadius.xl,
+          boxShadow: colors.shadowLg,
+          border: `1px solid ${colors.border}`,
+          padding: '36px 32px',
+        }}>
+          <div style={{ marginBottom: '28px' }}>
+            <h2 style={{
+              fontSize: '22px',
+              fontWeight: '800',
+              color: colors.text,
+              margin: '0 0 6px',
+            }}>
+              Sign In to AMIS
+            </h2>
+            <p style={{
+              fontSize: '13px',
+              color: colors.textMuted,
+              margin: 0,
+            }}>
+              Enter your credentials to access your dashboard.
+            </p>
+          </div>
+
+          {error && (
+            <div style={{
+              padding: '10px 14px',
+              backgroundColor: colors.errorBg,
+              border: `1px solid ${colors.errorBorder}`,
+              borderRadius: borderRadius.md,
+              color: colors.error,
+              fontSize: '13px',
+              fontWeight: '500',
+              marginBottom: '20px',
+            }}>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={labelStyle}>Username</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  style={{
+                    ...inputStyle,
+                    height: '42px',
+                    paddingLeft: '36px',
+                  }}
+                  placeholder="Geli username..."
+                  required
+                />
+                <User 
+                  size={16} 
+                  color={colors.textLight} 
+                  style={{ position: 'absolute', left: '12px', top: '13px' }} 
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>Password</label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: colors.primary,
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    ...inputStyle,
+                    height: '42px',
+                    paddingLeft: '36px',
+                  }}
+                  placeholder="Geli password..."
+                  required
+                />
+                <Lock 
+                  size={16} 
+                  color={colors.textLight} 
+                  style={{ position: 'absolute', left: '12px', top: '13px' }} 
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                ...buttonPrimaryStyle,
+                width: '100%',
+                height: '42px',
+                fontSize: '14px',
+              }}
+            >
+              {isLoading ? 'Xaqiijinaya...' : 'Gal Nidaamka'}
+              {!isLoading && <ArrowRight size={16} />}
+            </button>
+          </form>
+        </div>
+      </div>
 
       {showForgot && renderForgotModal()}
     </div>
   );
 }
-
-/* Styles ennui... (Koodhkaaga hoose sidiisii baa loo daayay) */
-const containerStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f2f5', fontFamily: 'Segoe UI, Helvetica, Arial, sans-serif' };
-const formStyle = { background: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0, 0, 0, .1), 0 8px 16px rgba(0, 0, 0, .1)', width: '380px' };
-const titleStyle = { textAlign: 'center', color: '#1c1e21', marginBottom: '20px', fontSize: '24px' };
-const errorStyle = { color: '#f02849', textAlign: 'center', marginBottom: '15px', fontSize: '14px', background: '#ffebe8', padding: '10px', borderRadius: '4px' };
-const inputGroupStyle = { marginBottom: '15px' };
-const labelStyle = { display: 'block', marginBottom: '5px', fontWeight: '600', color: '#1c1e21', fontSize: '14px' };
-const inputStyle = { width: '100%', padding: '14px', border: '1px solid #dddfe2', borderRadius: '6px', fontSize: '16px', boxSizing: 'border-box' };
-const buttonStyle = { width: '100%', padding: '12px', background: '#1a2a6c', color: 'white', border: 'none', borderRadius: '6px', fontSize: '18px', cursor: 'pointer', fontWeight: 'bold' };
-const forgotLinkBtn = { background: 'none', border: 'none', color: '#1877f2', fontSize: '14px', cursor: 'pointer' };
-const modalOverlay = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-const modalContent = { background: 'white', padding: '20px', borderRadius: '8px', width: '450px', boxShadow: '0 12px 28px rgba(0,0,0,0.2)', textAlign: 'left' };
-const btnGroup = { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px', borderTop: '1px solid #dddfe2', paddingTop: '15px' };
-const cancelBtn = { padding: '10px 20px', background: '#e4e6eb', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', color: '#4b4f56' };
-const searchBtn = { padding: '10px 20px', background: '#1877f2', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' };
 
 export default LoginPage;

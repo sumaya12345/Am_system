@@ -2,17 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { 
   X, 
-  ChevronDown, 
-  ChevronUp, 
   Send, 
   Paperclip, 
   MessageSquare, 
   Search, 
   User, 
-  Shield 
+  ShieldCheck,
+  Building,
+  CheckCircle2,
+  FileText
 } from 'lucide-react';
 import { getAuthUser } from './authSync';
-import { colors, modalOverlayStyle, modalContentStyle, modalHeaderStyle, modalTitleStyle, buttonPrimaryStyle, buttonSecondaryStyle, inputStyle } from './designSystem';
+import { 
+  colors, 
+  modalOverlayStyle, 
+  modalContentStyle, 
+  borderRadius, 
+  typography, 
+  buttonPrimaryStyle 
+} from './designSystem';
 
 export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode = false }) {
   const activeUser = currentUser || getAuthUser();
@@ -57,7 +65,6 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
     const fetchUsers = async () => {
       try {
         const res = await axios.get('http://localhost:5000/api/users');
-        const colorPalette = ['#5d5fef', '#27ae60', '#f39c12', '#1abc9c', '#e74c3c', '#8e44ad', '#2980b9'];
         
         // Role-based filtering for messaging permissions
         let allowedRoles = [];
@@ -84,7 +91,7 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
             }
             return true;
           })
-          .map((u, idx) => {
+          .map((u) => {
             let displayName = u.username;
             if (u.role === 'Urur') displayName = 'Taliyaha Urur';
             else if (u.role === 'medic') displayName = u.username || 'Sarkaalka Caafimaadka';
@@ -92,7 +99,6 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
             return {
               ...u,
               displayName,
-              color: colorPalette[idx % colorPalette.length]
             };
           });
 
@@ -136,12 +142,15 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
   // Send message handler
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
-    if ((!messageText.trim() && !attachment) || !selectedUser || !activeUser?.id) return;
+    if ((!messageText.trim() && !attachment) || !selectedUser || !activeUser?.id || isSending) {
+      return;
+    }
 
     setIsSending(true);
+
     try {
       const formData = new FormData();
-      formData.append('message', messageText.trim() || '(Attachment)');
+      formData.append('message', messageText.trim());
       formData.append('sender', String(activeUser.id));
       formData.append('receiver', String(selectedUser.id));
       if (attachment) {
@@ -174,7 +183,6 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
     if (onClose) onClose();
   };
 
-  // Complete clean unmount: return null when not open
   if (!isOpen) return null;
 
   // Filter users by search
@@ -240,36 +248,35 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
         role="option"
         aria-selected={isSelected}
         style={{
-          padding: '10px 14px',
-          marginBottom: '6px',
-          borderRadius: '10px',
+          padding: '8px 12px',
+          marginBottom: '4px',
+          borderRadius: borderRadius.md,
           cursor: 'pointer',
-          backgroundColor: isSelected
-            ? (darkMode ? '#1a2a6c' : '#eef2ff')
-            : (darkMode ? '#1e1e2d' : '#ffffff'),
-          borderLeft: isSelected ? `4px solid ${u.color || '#5d5fef'}` : '4px solid transparent',
-          border: darkMode ? '1px solid #2d2d3f' : '1px solid #f1f3f7',
+          backgroundColor: isSelected ? colors.primaryLight : colors.white,
+          borderLeft: isSelected ? `3px solid ${colors.primary}` : '3px solid transparent',
+          borderTop: `1px solid ${colors.borderLight}`,
+          borderRight: `1px solid ${colors.borderLight}`,
+          borderBottom: `1px solid ${colors.borderLight}`,
           transition: 'all 0.15s ease',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          outline: isFocused ? '2px solid #5d5fef' : 'none',
-          outlineOffset: '-2px'
+          gap: '10px',
+          outline: isFocused ? `2px solid ${colors.primary}` : 'none',
         }}
       >
         <div
           style={{
-            width: '34px',
-            height: '34px',
+            width: '32px',
+            height: '32px',
             borderRadius: '50%',
-            backgroundColor: u.color || '#5d5fef',
-            color: '#ffffff',
+            backgroundColor: isSelected ? colors.primary : '#e2e8f0',
+            color: isSelected ? colors.white : colors.textSecondary,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontWeight: '700',
-            fontSize: '13px',
-            flexShrink: 0
+            fontSize: '12px',
+            flexShrink: 0,
           }}
         >
           {u.displayName ? u.displayName.charAt(0).toUpperCase() : 'U'}
@@ -278,11 +285,11 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
           <div
             style={{
               fontWeight: isSelected ? '700' : '600',
-              color: darkMode ? '#ffffff' : '#1e293b',
-              fontSize: '13.5px',
+              color: isSelected ? colors.primary : colors.text,
+              fontSize: '13px',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
-              textOverflow: 'ellipsis'
+              textOverflow: 'ellipsis',
             }}
           >
             {u.displayName}
@@ -290,20 +297,20 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
           <div
             style={{
               fontSize: '11px',
-              color: darkMode ? '#94a3b8' : '#64748b',
+              color: colors.textMuted,
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
             }}
           >
             <span
               style={{
-                backgroundColor: darkMode ? '#334155' : '#e2e8f0',
-                color: darkMode ? '#cbd5e1' : '#475569',
-                padding: '1px 6px',
+                backgroundColor: isSelected ? '#dbeafe' : '#f1f5f9',
+                color: isSelected ? colors.primary : colors.textSecondary,
+                padding: '1px 5px',
                 borderRadius: '4px',
-                fontSize: '10px',
-                fontWeight: '600'
+                fontSize: '9.5px',
+                fontWeight: '600',
               }}
             >
               {u.role}
@@ -316,10 +323,7 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
 
   return (
     <div
-      style={{
-        ...modalOverlayStyle,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      }}
+      style={modalOverlayStyle}
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
@@ -329,90 +333,79 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
           ...modalContentStyle,
           width: '920px',
           maxWidth: '100%',
-          height: '640px',
+          height: '620px',
           maxHeight: '92vh',
           padding: 0,
           display: 'flex',
           overflow: 'hidden',
+          borderRadius: borderRadius.xl,
           border: `1px solid ${colors.border}`,
         }}
       >
-        {/* LEFT PANEL: DIRECTORY & CONTACTS */}
+        {/* ── LEFT DIRECTORY PANEL ── */}
         <div
           style={{
-            width: '320px',
+            width: '300px',
             borderRight: `1px solid ${colors.border}`,
-            backgroundColor: colors.backgroundAlt,
+            backgroundColor: '#f8fafc',
             display: 'flex',
             flexDirection: 'column',
-            flexShrink: 0
+            flexShrink: 0,
           }}
         >
           {/* Header */}
           <div
             style={{
-              padding: '16px 18px',
+              padding: '14px 16px',
               borderBottom: `1px solid ${colors.border}`,
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: colors.white
+              backgroundColor: colors.white,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div
                 style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '8px',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
                   backgroundColor: colors.primary,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: colors.white
+                  color: colors.white,
                 }}
               >
-                <MessageSquare size={16} />
+                <MessageSquare size={15} />
               </div>
               <div>
-                <h3
-                  style={{
-                    margin: 0,
-                    fontSize: '15px',
-                    fontWeight: '700',
-                    color: colors.text
-                  }}
-                >
+                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: colors.text }}>
                   Fariimaha
                 </h3>
-                <span style={{ fontSize: '11px', color: darkMode ? '#94a3b8' : '#64748b' }}>
-                  AMIS Messaging
+                <span style={{ fontSize: '10.5px', color: colors.textMuted }}>
+                  Official Messaging
                 </span>
               </div>
             </div>
 
             <button
               onClick={handleClose}
-              title="Xir Fariimaha (Close)"
+              title="Xir"
               style={{
-                background: colors.backgroundAlt,
+                background: 'transparent',
                 border: 'none',
-                borderRadius: '8px',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 cursor: 'pointer',
-                color: colors.textMuted
+                color: colors.textMuted,
+                padding: '4px',
               }}
             >
-              <X size={18} />
+              <X size={17} />
             </button>
           </div>
 
           {/* Search bar */}
-          <div style={{ padding: '12px 14px' }}>
+          <div style={{ padding: '10px 14px', backgroundColor: '#f8fafc' }}>
             <div
               style={{
                 display: 'flex',
@@ -420,14 +413,14 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
                 gap: '8px',
                 backgroundColor: colors.white,
                 border: `1px solid ${colors.border}`,
-                borderRadius: '8px',
-                padding: '8px 12px'
+                borderRadius: borderRadius.md,
+                padding: '6px 10px',
               }}
             >
               <Search size={14} color={colors.textMuted} />
               <input
                 type="text"
-                placeholder="Raadi qof ama role..."
+                placeholder="Raadi sarkaal ama horin..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -435,8 +428,8 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
                   outline: 'none',
                   background: 'transparent',
                   width: '100%',
-                  fontSize: '12.5px',
-                  color: colors.text
+                  fontSize: '12px',
+                  color: colors.text,
                 }}
               />
               {searchQuery && (
@@ -449,339 +442,158 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
             </div>
           </div>
 
-          {/* Contact Directory Accordions */}
+          {/* Continuous User Directory List */}
           <div
             style={{
               flex: 1,
-              minHeight: 0,
               overflowY: 'auto',
-              overscrollBehavior: 'contain',
-              padding: '0 12px 16px 12px',
+              padding: '4px 10px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px'
+              gap: '12px',
             }}
           >
             {/* GROUP: TALIYAHA URUR */}
             {ururUsers.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: colors.white,
-                  borderRadius: '10px',
-                  border: `1px solid ${colors.border}`,
-                  overflow: 'hidden'
-                }}
-              >
-                <div
-                  onClick={() => setExpandedGroups((p) => ({ ...p, urur: !p.urur }))}
-                  style={{
-                    padding: '10px 14px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    backgroundColor: colors.primaryLight
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: '700',
-                      fontSize: '13px',
-                      color: colors.primary
-                    }}
-                  >
-                    Taliyaha Urur ({ururUsers.length})
-                  </span>
-                  {expandedGroups.urur ? (
-                    <ChevronUp size={16} color={colors.textMuted} />
-                  ) : (
-                    <ChevronDown size={16} color={colors.textMuted} />
-                  )}
+              <div>
+                <div style={{ padding: '4px 8px', fontSize: '11px', fontWeight: '800', color: colors.primary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Taliyaha Urur ({ururUsers.length})
                 </div>
-                {expandedGroups.urur && (
-                    <div style={{ padding: '8px 10px', maxHeight: '230px', overflowY: 'auto', overscrollBehavior: 'contain' }} onWheel={(event) => event.stopPropagation()} onTouchMove={(event) => event.stopPropagation()} onKeyDown={handleDirectoryKeyDown}>
-                    {ururUsers.map(renderUserItem)}
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }} onKeyDown={handleDirectoryKeyDown}>
+                  {ururUsers.map(renderUserItem)}
+                </div>
               </div>
             )}
 
             {/* GROUP: SARKAALKA (S1-S4) */}
             {sarkaalUsers.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: darkMode ? '#1e1e2d' : '#ffffff',
-                  borderRadius: '10px',
-                  border: darkMode ? '1px solid #2d2d3f' : '1px solid #e2e8f0',
-                  overflow: 'hidden'
-                }}
-              >
-                <div
-                  onClick={() => setExpandedGroups((p) => ({ ...p, sarkaal: !p.sarkaal }))}
-                  style={{
-                    padding: '10px 14px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    backgroundColor: darkMode ? '#252538' : '#f1f5f9'
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: '700',
-                      fontSize: '13px',
-                      color: darkMode ? '#ffffff' : '#334155'
-                    }}
-                  >
-                    Sarkaalka ({sarkaalUsers.length})
-                  </span>
-                  {expandedGroups.sarkaal ? (
-                    <ChevronUp size={16} color={darkMode ? '#94a3b8' : '#64748b'} />
-                  ) : (
-                    <ChevronDown size={16} color={darkMode ? '#94a3b8' : '#64748b'} />
-                  )}
+              <div>
+                <div style={{ padding: '4px 8px', fontSize: '11px', fontWeight: '800', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Saraakiisha S1–S4 ({sarkaalUsers.length})
                 </div>
-                {expandedGroups.sarkaal && (
-                    <div style={{ padding: '8px 10px', maxHeight: '230px', overflowY: 'auto', overscrollBehavior: 'contain' }} onWheel={(event) => event.stopPropagation()} onTouchMove={(event) => event.stopPropagation()} onKeyDown={handleDirectoryKeyDown}>
-                    {sarkaalUsers.map(renderUserItem)}
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }} onKeyDown={handleDirectoryKeyDown}>
+                  {sarkaalUsers.map(renderUserItem)}
+                </div>
               </div>
             )}
 
             {/* GROUP: TALIYAHA HORINTA (H1-H4) */}
             {horintaUsers.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: darkMode ? '#1e1e2d' : '#ffffff',
-                  borderRadius: '10px',
-                  border: darkMode ? '1px solid #2d2d3f' : '1px solid #e2e8f0',
-                  overflow: 'hidden'
-                }}
-              >
-                <div
-                  onClick={() => setExpandedGroups((p) => ({ ...p, horinta: !p.horinta }))}
-                  style={{
-                    padding: '10px 14px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    backgroundColor: darkMode ? '#252538' : '#f1f5f9'
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: '700',
-                      fontSize: '13px',
-                      color: darkMode ? '#ffffff' : '#334155'
-                    }}
-                  >
-                    Taliyaha Horinta ({horintaUsers.length})
-                  </span>
-                  {expandedGroups.horinta ? (
-                    <ChevronUp size={16} color={darkMode ? '#94a3b8' : '#64748b'} />
-                  ) : (
-                    <ChevronDown size={16} color={darkMode ? '#94a3b8' : '#64748b'} />
-                  )}
+              <div>
+                <div style={{ padding: '4px 8px', fontSize: '11px', fontWeight: '800', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Taliyayaasha Horimaha ({horintaUsers.length})
                 </div>
-                {expandedGroups.horinta && (
-                    <div style={{ padding: '8px 10px', maxHeight: '230px', overflowY: 'auto', overscrollBehavior: 'contain' }} onWheel={(event) => event.stopPropagation()} onTouchMove={(event) => event.stopPropagation()} onKeyDown={handleDirectoryKeyDown}>
-                    {horintaUsers.map(renderUserItem)}
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }} onKeyDown={handleDirectoryKeyDown}>
+                  {horintaUsers.map(renderUserItem)}
+                </div>
               </div>
             )}
 
             {/* GROUP: CAAFIMAADKA (medic) */}
             {medicUsers.length > 0 && (
-              <div
-                style={{
-                  backgroundColor: darkMode ? '#1e1e2d' : '#ffffff',
-                  borderRadius: '10px',
-                  border: darkMode ? '1px solid #2d2d3f' : '1px solid #e2e8f0',
-                  overflow: 'hidden'
-                }}
-              >
-                <div
-                  onClick={() => setExpandedGroups((p) => ({ ...p, medical: !p.medical }))}
-                  style={{
-                    padding: '10px 14px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    backgroundColor: darkMode ? '#252538' : '#f1f5f9'
-                  }}
-                >
-                  <span
-                    style={{
-                      fontWeight: '700',
-                      fontSize: '13px',
-                      color: darkMode ? '#ffffff' : '#334155'
-                    }}
-                  >
-                    Caafimaadka ({medicUsers.length})
-                  </span>
-                  {expandedGroups.medical ? (
-                    <ChevronUp size={16} color={darkMode ? '#94a3b8' : '#64748b'} />
-                  ) : (
-                    <ChevronDown size={16} color={darkMode ? '#94a3b8' : '#64748b'} />
-                  )}
+              <div>
+                <div style={{ padding: '4px 8px', fontSize: '11px', fontWeight: '800', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Qeybta Caafimaadka ({medicUsers.length})
                 </div>
-                {expandedGroups.medical && (
-                    <div style={{ padding: '8px 10px', maxHeight: '230px', overflowY: 'auto', overscrollBehavior: 'contain' }} onWheel={(event) => event.stopPropagation()} onTouchMove={(event) => event.stopPropagation()} onKeyDown={handleDirectoryKeyDown}>
-                    {medicUsers.map(renderUserItem)}
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }} onKeyDown={handleDirectoryKeyDown}>
+                  {medicUsers.map(renderUserItem)}
+                </div>
               </div>
             )}
 
             {availableUsers.length === 0 && (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '30px 10px',
-                  color: darkMode ? '#94a3b8' : '#64748b',
-                  fontSize: '13px'
-                }}
-              >
-                Lama helin xubno kale oo la wadaagi karo fariimo.
+              <div style={{ textAlign: 'center', padding: '30px 10px', color: colors.textMuted, fontSize: '12px' }}>
+                Lama helin xubno kale.
               </div>
             )}
           </div>
         </div>
 
-        {/* RIGHT PANEL: CHAT CONVERSATION */}
+        {/* ── RIGHT CHAT CONVERSATION PANEL ── */}
         <div
           style={{
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: darkMode ? '#12121a' : '#ffffff',
-            position: 'relative'
+            backgroundColor: colors.white,
+            position: 'relative',
           }}
         >
           {selectedUser ? (
             <>
-              {/* Active Chat Header */}
+              {/* Active Header */}
               <div
                 style={{
-                  padding: '14px 20px',
-                  borderBottom: darkMode ? '1px solid #27273a' : '1px solid #e2e8f0',
+                  padding: '12px 18px',
+                  borderBottom: `1px solid ${colors.border}`,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  backgroundColor: darkMode ? '#181824' : '#ffffff'
+                  backgroundColor: colors.white,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div
                     style={{
-                      width: '38px',
-                      height: '38px',
+                      width: '34px',
+                      height: '34px',
                       borderRadius: '50%',
-                      backgroundColor: selectedUser.color || '#5d5fef',
-                      color: '#ffffff',
+                      backgroundColor: colors.primary,
+                      color: colors.white,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: '700',
-                      fontSize: '14px'
+                      fontSize: '13px',
                     }}
                   >
                     {selectedUser.displayName ? selectedUser.displayName.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div>
-                    <h4
-                      style={{
-                        margin: 0,
-                        fontSize: '15px',
-                        fontWeight: '700',
-                        color: darkMode ? '#ffffff' : '#0f172a'
-                      }}
-                    >
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: colors.text }}>
                       {selectedUser.displayName}
                     </h4>
-                    <span
-                      style={{
-                        fontSize: '11.5px',
-                        color: darkMode ? '#94a3b8' : '#64748b',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: '7px',
-                          height: '7px',
-                          borderRadius: '50%',
-                          backgroundColor: '#22c55e',
-                          display: 'inline-block'
-                        }}
-                      />
-                      Role: {selectedUser.role} • Xog Dhaweyn
+                    <span style={{ fontSize: '11px', color: colors.textMuted }}>
+                      Role: {selectedUser.role} • Xarunta AMIS
                     </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     onClick={() => setSelectedUser(null)}
-                    title="Deselect user"
                     style={{
-                      background: darkMode ? '#27273a' : '#f1f5f9',
+                      background: '#f1f5f9',
                       border: 'none',
-                      borderRadius: '6px',
-                      padding: '6px 10px',
+                      borderRadius: borderRadius.sm,
+                      padding: '5px 9px',
                       fontSize: '11px',
                       cursor: 'pointer',
-                      color: darkMode ? '#cbd5e1' : '#475569',
-                      fontWeight: '600'
+                      color: colors.textSecondary,
+                      fontWeight: '600',
                     }}
                   >
-                    Xir Wadahadalka
-                  </button>
-                  <button
-                    onClick={handleClose}
-                    title="Xir Fariimaha Guud"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: darkMode ? '#94a3b8' : '#64748b'
-                    }}
-                  >
-                    <X size={20} />
+                    Xir Qoraalka
                   </button>
                 </div>
               </div>
 
-              {/* Messages Flow */}
+              {/* Messages stream */}
               <div
                 style={{
                   flex: 1,
-                  padding: '20px',
+                  padding: '16px 20px',
                   overflowY: 'auto',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px',
-                  backgroundColor: darkMode ? '#12121a' : '#f8fafc'
+                  gap: '10px',
+                  backgroundColor: '#f8fafc',
                 }}
               >
                 {messages.length === 0 ? (
-                  <div
-                    style={{
-                      margin: 'auto',
-                      textAlign: 'center',
-                      color: darkMode ? '#94a3b8' : '#64748b',
-                      fontSize: '13px'
-                    }}
-                  >
-                    <p style={{ margin: '0 0 6px 0', fontWeight: '600' }}>Wali farriin lama wadaagin.</p>
-                    <p style={{ margin: 0, fontSize: '12px' }}>Ku qor farriinta koowaad qeybta hoose.</p>
+                  <div style={{ margin: 'auto', textAlign: 'center', color: colors.textMuted, fontSize: '13px' }}>
+                    <p style={{ margin: '0 0 4px 0', fontWeight: '600' }}>Wali farriin lama wadaagin.</p>
+                    <p style={{ margin: 0, fontSize: '12px' }}>Ku qor farriinta hoose si aad u bilowdo wadahadalka.</p>
                   </div>
                 ) : (
                   messages.map((msg, idx) => {
@@ -794,33 +606,26 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
                           maxWidth: '72%',
                           display: 'flex',
                           flexDirection: 'column',
-                          alignItems: isMine ? 'flex-end' : 'flex-start'
+                          alignItems: isMine ? 'flex-end' : 'flex-start',
                         }}
                       >
                         <div
                           style={{
-                            backgroundColor: isMine
-                              ? '#5d5fef'
-                              : (darkMode ? '#222232' : '#ffffff'),
-                            color: isMine
-                              ? '#ffffff'
-                              : (darkMode ? '#f1f5f9' : '#0f172a'),
-                            padding: '10px 16px',
-                            borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                            fontSize: '13.5px',
+                            backgroundColor: isMine ? colors.primary : colors.white,
+                            color: isMine ? colors.white : colors.text,
+                            padding: '9px 14px',
+                            borderRadius: isMine ? '14px 14px 3px 14px' : '14px 14px 14px 3px',
+                            fontSize: '13px',
                             lineHeight: '1.45',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-                            border: isMine
-                              ? 'none'
-                              : (darkMode ? '1px solid #2e2e42' : '1px solid #e2e8f0'),
-                            wordBreak: 'break-word'
+                            boxShadow: colors.shadowSm,
+                            border: isMine ? 'none' : `1px solid ${colors.border}`,
+                            wordBreak: 'break-word',
                           }}
                         >
                           {msg.message}
 
-                          {/* Render attachment if available */}
                           {msg.attachment && (
-                            <div style={{ marginTop: '8px' }}>
+                            <div style={{ marginTop: '6px' }}>
                               <a
                                 href={`http://localhost:5000/uploads/${msg.attachment}`}
                                 target="_blank"
@@ -829,31 +634,24 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '6px',
-                                  backgroundColor: isMine ? 'rgba(255,255,255,0.2)' : (darkMode ? '#2c2c3e' : '#f1f5f9'),
-                                  color: isMine ? '#ffffff' : '#5d5fef',
-                                  padding: '4px 10px',
-                                  borderRadius: '6px',
+                                  backgroundColor: isMine ? 'rgba(255,255,255,0.18)' : '#f1f5f9',
+                                  color: isMine ? colors.white : colors.primary,
+                                  padding: '4px 8px',
+                                  borderRadius: '5px',
                                   textDecoration: 'none',
-                                  fontSize: '11.5px',
-                                  fontWeight: '600'
+                                  fontSize: '11px',
+                                  fontWeight: '600',
                                 }}
                               >
-                                <Paperclip size={13} />
-                                Fiiri File-ka / Attachment
+                                <Paperclip size={12} />
+                                Fiiri Attachment
                               </a>
                             </div>
                           )}
                         </div>
 
                         {msg.created_at && (
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              color: darkMode ? '#64748b' : '#94a3b8',
-                              marginTop: '3px',
-                              padding: '0 4px'
-                            }}
-                          >
+                          <span style={{ fontSize: '9.5px', color: colors.textLight, marginTop: '2px', padding: '0 4px' }}>
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         )}
@@ -868,12 +666,12 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
               <form
                 onSubmit={handleSendMessage}
                 style={{
-                  padding: '14px 20px',
-                  borderTop: darkMode ? '1px solid #27273a' : '1px solid #e2e8f0',
-                  backgroundColor: darkMode ? '#181824' : '#ffffff',
+                  padding: '12px 16px',
+                  borderTop: `1px solid ${colors.border}`,
+                  backgroundColor: colors.white,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px'
+                  gap: '8px',
                 }}
               >
                 <input
@@ -890,155 +688,91 @@ export default function FariimahaModal({ isOpen, onClose, currentUser, darkMode 
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  title="Ku lifaaq file / attachment"
+                  title="Lifaaq file"
                   style={{
-                    background: attachment ? '#e0e7ff' : (darkMode ? '#27273a' : '#f1f5f9'),
-                    color: attachment ? '#4338ca' : (darkMode ? '#cbd5e1' : '#64748b'),
+                    background: attachment ? colors.primaryLight : '#f1f5f9',
+                    color: attachment ? colors.primary : colors.textMuted,
                     border: 'none',
-                    borderRadius: '50%',
-                    width: '38px',
-                    height: '38px',
+                    borderRadius: borderRadius.md,
+                    width: '36px',
+                    height: '36px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    flexShrink: 0
                   }}
                 >
-                  <Paperclip size={17} />
+                  <Paperclip size={16} />
                 </button>
 
-                <div style={{ flex: 1, position: 'relative' }}>
-                  {attachment && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '-32px',
-                        left: 0,
-                        backgroundColor: darkMode ? '#222232' : '#e0e7ff',
-                        color: darkMode ? '#cbd5e1' : '#3730a3',
-                        fontSize: '11px',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span>File: {attachment.name}</span>
-                      <X
-                        size={12}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          setAttachment(null);
-                          if (fileInputRef.current) fileInputRef.current.value = '';
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  <input
-                    type="text"
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    placeholder="Qor farriintaada..."
-                    style={{
-                      width: '100%',
-                      padding: '11px 16px',
-                      borderRadius: '24px',
-                      border: darkMode ? '1px solid #333348' : '1px solid #cbd5e1',
-                      outline: 'none',
-                      backgroundColor: darkMode ? '#222232' : '#f8fafc',
-                      color: darkMode ? '#ffffff' : '#0f172a',
-                      fontSize: '13.5px',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
+                <input
+                  type="text"
+                  placeholder={attachment ? `File: ${attachment.name} (Geli qoraal...)` : 'Qor farriin rasmi ah...'}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  style={{
+                    flex: 1,
+                    height: '36px',
+                    padding: '0 12px',
+                    borderRadius: borderRadius.md,
+                    border: `1px solid ${colors.border}`,
+                    fontSize: '13px',
+                    color: colors.text,
+                    outline: 'none',
+                    backgroundColor: colors.white,
+                  }}
+                />
 
                 <button
                   type="submit"
                   disabled={isSending || (!messageText.trim() && !attachment)}
                   style={{
-                    padding: '11px 20px',
-                    borderRadius: '24px',
-                    backgroundColor: (!messageText.trim() && !attachment)
-                      ? (darkMode ? '#333348' : '#cbd5e1')
-                      : '#5d5fef',
-                    color: '#ffffff',
-                    border: 'none',
-                    cursor: (!messageText.trim() && !attachment) ? 'not-allowed' : 'pointer',
-                    fontWeight: '600',
-                    fontSize: '13.5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    flexShrink: 0,
-                    transition: 'background-color 0.2s'
+                    ...buttonPrimaryStyle,
+                    height: '36px',
+                    padding: '0 14px',
+                    fontSize: '13px',
+                    opacity: (!messageText.trim() && !attachment) ? 0.6 : 1,
                   }}
                 >
                   <Send size={15} />
-                  <span>{isSending ? 'Dirayaa...' : 'Dir'}</span>
+                  <span>Dir</span>
                 </button>
               </form>
             </>
           ) : (
-            // No user selected state
             <div
               style={{
                 flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center',
                 alignItems: 'center',
-                padding: '40px',
+                justifyContent: 'center',
+                padding: '30px',
                 textAlign: 'center',
-                color: darkMode ? '#94a3b8' : '#64748b'
+                color: colors.textMuted,
               }}
             >
               <div
                 style={{
-                  width: '68px',
-                  height: '68px',
+                  width: '54px',
+                  height: '54px',
                   borderRadius: '50%',
-                  backgroundColor: darkMode ? '#1f1f30' : '#eef2ff',
-                  color: '#5d5fef',
+                  backgroundColor: '#f1f5f9',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: '16px'
+                  color: colors.primary,
+                  marginBottom: '14px',
                 }}
               >
-                <MessageSquare size={32} />
+                <MessageSquare size={24} />
               </div>
-              <h3
-                style={{
-                  margin: '0 0 8px 0',
-                  color: darkMode ? '#ffffff' : '#0f172a',
-                  fontSize: '18px',
-                  fontWeight: '700'
-                }}
-              >
-                Wadahadalka AMIS System
-              </h3>
-              <p style={{ margin: '0 0 20px 0', maxWidth: '340px', fontSize: '13.5px', lineHeight: '1.5' }}>
-                Fadlan dhinaca bidix ka dooro sarkaal, taliye ama qeybta caafimaadka si aad ula wadaagto fariimo toos ah.
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', color: colors.text, fontWeight: '700' }}>
+                Xarunta Fariimaha AMIS
+              </h4>
+              <p style={{ margin: 0, fontSize: '13px', maxWidth: '300px', lineHeight: 1.5 }}>
+                Fadlan dhinaca bidix ka dooro qofka aad doonayso inaad la xiriirto.
               </p>
-              <button
-                onClick={handleClose}
-                style={{
-                  padding: '8px 18px',
-                  backgroundColor: darkMode ? '#27273a' : '#f1f5f9',
-                  color: darkMode ? '#cbd5e1' : '#475569',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '13px'
-                }}
-              >
-                Xir Daaqadda (Close)
-              </button>
             </div>
           )}
         </div>

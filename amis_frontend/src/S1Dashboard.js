@@ -6,7 +6,7 @@ import FariimahaModal from './FariimahaModal';
 import ProfileImage from './ProfileImage';
 import { useAuthUser, updateAuthUser, getProfilePicUrl, getAuthConfig } from './authSync';
 import Sidebar from './components/Sidebar';
-import { colors, cardStyle, tableStyle, tableHeaderStyle, tableCellStyle, buttonPrimaryStyle, buttonSecondaryStyle, buttonDangerStyle, inputStyle, labelStyle, emptyStateStyle, modalOverlayStyle, modalContentStyle, modalHeaderStyle, modalTitleStyle } from './designSystem';
+import { colors, cardStyle, tableStyle, tableHeaderStyle, tableCellStyle, buttonPrimaryStyle, buttonSecondaryStyle, buttonDangerStyle, inputStyle, labelStyle, emptyStateStyle, modalOverlayStyle, modalContentStyle, modalHeaderStyle, modalTitleStyle, borderRadius, badgeStyle, badgeSuccessStyle, badgeWarningStyle, badgeErrorStyle, getColors } from './designSystem';
 // --- MESSENGER COMPONENT (REVISED) ---
 function MessengerH1({ isOpen, onClose, activeUser}) {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -102,47 +102,36 @@ function MessengerH1({ isOpen, onClose, activeUser}) {
             <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '20px' }}>×</button>
           </div>
 
-          {realUsers.map((user) => {
-            const isExpanded = expandedUserIds.includes(user.id);
-            const isSelected = selectedUser?.id === user.id;
-            return (
-              <div key={user.id} style={{ borderBottom: '1px solid #eee' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 18px', backgroundColor: isSelected ? '#e7e9ff' : 'transparent', borderLeft: isSelected ? '4px solid #5d5fef' : '4px solid transparent' }}>
-                  <button
-                    type="button"
-                    onClick={() => toggleUser(user.id)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#5d5fef', minWidth: '14px', padding: 0 }}
-                    aria-label={isExpanded ? 'Collapse conversation' : 'Expand conversation'}
-                  >
-                    {isExpanded ? '▼' : '▶'}
-                  </button>
-                  <div
-                    onClick={() => openConversation(user)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      cursor: 'pointer',
-                      flex: 1
-                    }}
-                  >
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#5d5fef', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '12px', fontWeight: '700' }}>{user.role?.slice(0, 2) || 'U'}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '700', fontSize: '14px' }}>{getUserDisplayName(user)}</div>
-                      <div style={{ fontSize: '11px', color: '#888' }}>{user.username || user.role}</div>
-                    </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {realUsers.map((user) => {
+              const isSelected = selectedUser?.id === user.id;
+              return (
+                <div
+                  key={user.id}
+                  onClick={() => openConversation(user)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 18px',
+                    cursor: 'pointer',
+                    backgroundColor: isSelected ? '#f0f5fa' : 'transparent',
+                    borderLeft: isSelected ? '4px solid #0f1f38' : '4px solid transparent',
+                    borderBottom: '1px solid #f1f5f9',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#0f1f38', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '12px', fontWeight: '700' }}>
+                    {user.role?.slice(0, 2) || 'U'}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: '700', fontSize: '13.5px', color: '#0f172a' }}>{getUserDisplayName(user)}</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>{user.username || user.role}</div>
                   </div>
                 </div>
-                {isExpanded && (
-                  <div style={{ padding: '0 18px 12px 42px', color: '#666', fontSize: '12px' }}>
-                    <div style={{ padding: '8px 10px', borderRadius: '8px', background: '#f3f4ff', border: '1px solid #e7e9ff', cursor: 'pointer' }} onClick={() => openConversation(user)}>
-                      {isSelected ? 'Open active conversation' : 'Open conversation'}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
@@ -269,11 +258,11 @@ export function SettingsPage({ user, onThemeChange }) {
     padding: '12px 25px',
     cursor: 'pointer',
     border: 'none',
-    background: activeTab === tab ? '#5d5fef' : 'transparent',
-    color: activeTab === tab ? '#fff' : '#555',
+    background: activeTab === tab ? '#0f1f38' : 'transparent',
+    color: activeTab === tab ? '#fff' : '#475569',
     borderRadius: '8px',
-    fontWeight: 'bold',
-    transition: '0.3s',
+    fontWeight: '600',
+    transition: '0.2s',
     display: 'flex',
     alignItems: 'center',
     gap: '8px'
@@ -576,8 +565,8 @@ export function SettingsPage({ user, onThemeChange }) {
         {activeTab === 'profile' && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ position: 'relative', display: 'inline-block' }}>
-              {previewUrl ? <img src={previewUrl} style={{ width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #5d5fef' }} alt="Profile" /> : <ProfileImage pic={activeUser?.pic || activeUser?.profile_pic} style={{ width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #5d5fef' }} alt="Profile" />}
-              <label htmlFor="pic-upload" style={{ position: 'absolute', bottom: '5px', right: '5px', background: '#5d5fef', color: 'white', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>📸</label>
+              {previewUrl ? <img src={previewUrl} style={{ width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #0f1f38' }} alt="Profile" /> : <ProfileImage pic={activeUser?.pic || activeUser?.profile_pic} style={{ width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #0f1f38' }} alt="Profile" />}
+              <label htmlFor="pic-upload" style={{ position: 'absolute', bottom: '5px', right: '5px', background: '#0f1f38', color: 'white', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>📸</label>
               <input id="pic-upload" type="file" hidden accept="image/*" onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) { setNewProfilePic(file); setPreviewUrl(URL.createObjectURL(file)); }
@@ -586,7 +575,7 @@ export function SettingsPage({ user, onThemeChange }) {
             <div style={{ marginTop: '20px', textAlign: 'left' }}>
               <label>Username</label>
               <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} style={inputStyle} />
-              <button onClick={handleSaveSettings} style={{ width: '100%', marginTop: '20px', padding: '12px', background: '#5d5fef', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{isLoading ? "Saving..." : "Save Changes"}</button>
+              <button onClick={handleSaveSettings} style={{ width: '100%', marginTop: '20px', padding: '12px', background: '#0f1f38', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>{isLoading ? "Saving..." : "Save Changes"}</button>
             </div>
           </div>
         )}
@@ -597,7 +586,7 @@ export function SettingsPage({ user, onThemeChange }) {
               <strong>Night Mode</strong>
               <p style={{ margin: '6px 0 0', color: '#666', fontSize: '13px' }}>Change the appearance for this account.</p>
             </div>
-            <button type="button" onClick={toggleDarkMode} style={{ width: '48px', height: '26px', border: 'none', borderRadius: '20px', background: isDarkMode ? '#5d5fef' : '#d1d5db', cursor: 'pointer', position: 'relative' }} aria-label="Toggle night mode">
+            <button type="button" onClick={toggleDarkMode} style={{ width: '48px', height: '26px', border: 'none', borderRadius: '20px', background: isDarkMode ? '#0f1f38' : '#d1d5db', cursor: 'pointer', position: 'relative' }} aria-label="Toggle night mode">
               <span style={{ display: 'block', width: '20px', height: '20px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', left: isDarkMode ? '25px' : '3px', transition: 'left 0.2s' }} />
             </button>
           </div>
@@ -626,7 +615,7 @@ export function SettingsPage({ user, onThemeChange }) {
                 <input type="password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} style={inputStyle} />
                 <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={inputStyle} />
                 <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={inputStyle} />
-                <button onClick={handleUpdatePassword} disabled={isLoading} style={{ padding: '12px', border: 'none', borderRadius: '8px', background: '#5d5fef', color: '#fff', cursor: isLoading ? 'wait' : 'pointer', fontWeight: '600' }}>{isLoading ? 'Saving...' : 'Update password'}</button>
+                <button onClick={handleUpdatePassword} disabled={isLoading} style={{ padding: '12px', border: 'none', borderRadius: '8px', background: '#0f1f38', color: '#fff', cursor: isLoading ? 'wait' : 'pointer', fontWeight: '600' }}>{isLoading ? 'Saving...' : 'Update password'}</button>
               </div>
             )}
 
@@ -722,7 +711,7 @@ export function SettingsPage({ user, onThemeChange }) {
                       )}
 
                       {isCheckingEmail && (
-                        <div style={{ color: '#5d5fef', fontSize: '12px', marginTop: '5px' }}>
+                        <div style={{ color: '#0f1f38', fontSize: '12px', marginTop: '5px', fontWeight: '600' }}>
                           🔄 Checking email legitimacy...
                         </div>
                       )}
@@ -918,7 +907,7 @@ const textAreaStyle = {
 };
 
 const sendBtnStyle = {
-  background: '#5d5fef',
+  background: '#0f1f38',
   color: 'white',
   border: 'none',
   padding: '10px 20px',
@@ -1658,9 +1647,9 @@ useEffect(() => {
                   overflow: 'hidden',
                   border: '1px solid #eee'
                 }}>
-                  <div style={{ padding: '12px', background: '#f8f9fa', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#333' }}>Ogeysiiska Caafimaadka</span>
-                    <span style={{ background: '#eafaf1', color: '#27ae60', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
+                  <div style={{ padding: '12px', background: colors.backgroundAlt, borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 'bold', fontSize: '14px', color: colors.text }}>Ogeysiiska Caafimaadka</span>
+                    <span style={{ ...badgeStyle, backgroundColor: colors.successBg, color: colors.success, border: `1px solid ${colors.successBorder}` }}>
                       {flaggedAskar.length} QOF
                     </span>
                   </div>
@@ -1674,20 +1663,20 @@ useEffect(() => {
                           setActivePage('view');
                           setShowNotifyList(false);
                         }}
-                        style={{ padding: '12px', borderBottom: '1px solid #f9f9f9', cursor: 'pointer', transition: '0.2s' }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#f0f2f5'}
+                        style={{ padding: '12px', borderBottom: `1px solid ${colors.borderLight}`, cursor: 'pointer', transition: '0.2s' }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = colors.backgroundAlt}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           <img
                             src={`http://localhost:5000/${s.profile_pic}`}
                             alt=""
-                            style={{ width: '45px', height: '45px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #eee' }}
+                            style={{ width: '45px', height: '45px', borderRadius: borderRadius.md, objectFit: 'cover', border: `1px solid ${colors.border}` }}
                           />
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#2c3e50' }}>{s.name}</h4>
-                            <span style={{ fontSize: '11px', color: '#7f8c8d' }}>ID: {s.sarkaal_id}</span>
-                            <p style={{ margin: 0, fontSize: '10px', color: '#e74c3c', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: colors.text }}>{s.name}</h4>
+                            <span style={{ fontSize: '11px', color: colors.textMuted }}>ID: {s.sarkaal_id}</span>
+                            <p style={{ margin: 0, fontSize: '10px', color: colors.error, display: 'flex', alignItems: 'center', gap: '3px' }}>
                               ⚠️ Wuxuu dhaafay Xadka Yattaka
                             </p>
                           </div>
@@ -1700,57 +1689,59 @@ useEffect(() => {
             </div>
           )}
         </div>
-      </header>      {/* DASHBOARD PAGE */}
-        {activePage === 'dashboard' && (
+      </header>
+      
+      {/* DASHBOARD PAGE */}
+      {activePage === 'dashboard' && (
           <>
-            <div style={{ marginBottom: '20px'}}>
-              <h2 style={{ color: '#1a2e26', fontSize: '28px', fontWeight: '700' }}>S1 Dashboard</h2>
-              <p style={{ color: '#889891' }}>Maareynta iyo xareynta xogta sarkaalada.</p>
+            <div style={{ marginBottom: '24px' }}>
+              <h2 style={{ color: colors.text, fontSize: '28px', fontWeight: '700' }}>S1 Dashboard</h2>
+              <p style={{ color: colors.textMuted }}>Maareynta iyo xareynta xogta sarkaalada.</p>
             </div>
 
             {!showForm && (
               <div style={{ marginBottom: '20px' }}>
-                <button type="button" onClick={handleReopenForm} style={{ padding: '12px 20px', background: '#5d5fef', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700' }}>
+                <button type="button" onClick={handleReopenForm} style={buttonPrimaryStyle}>
                   Fur Foomka Dib
                 </button>
               </div>
             )}
 
             {showForm && (
-              <div style={{ background: 'white', padding: '30px', borderRadius: '16px', border: '1px solid #edf2f0', marginBottom: '30px' }}>
-            <form onSubmit={(e) => { e.preventDefault(); if(validate()) handleSubmit(e); }} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '25px' }}>
+              <div style={{ ...cardStyle, marginBottom: '24px' }}>
+            <form onSubmit={(e) => { e.preventDefault(); if(validate()) handleSubmit(e); }} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
               
               <input type="file" onChange={(e) => setFile(e.target.files[0])} style={{ gridColumn: '1/-1' }} />
               
               {/* Sarkaal ID */}
-              <div style={inputGroup}>
+              <div style={{ marginBottom: '16px' }}>
                 <label style={labelStyle}>Sarkaal ID</label>
                 <input 
                   type="text" 
                   value={formData.sarkaal_id || ''} 
-                  style={{...inputStyle, borderColor: errors.sarkaal_id ? '#e74c3c' : '#edf2f0'}} 
+                  style={{...inputStyle, borderColor: errors.sarkaal_id ? colors.error : colors.border}} 
                   placeholder="4-digit ID..." 
                   onChange={e => setFormData({...formData, sarkaal_id: e.target.value})} 
                 />
-                {errors.sarkaal_id && <span style={{color: '#e74c3c', fontSize: '11px', marginTop: '4px'}}>{errors.sarkaal_id}</span>}
+                {errors.sarkaal_id && <span style={{color: colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.sarkaal_id}</span>}
               </div>
 
               {/* Magaca */}
-              <div style={inputGroup}>
+              <div style={{ marginBottom: '16px' }}>
                 <label style={labelStyle}>Magaca Dhammaystiran</label>
                 <input 
                   type="text" 
                   value={formData.name || ''} 
-                  style={{...inputStyle, borderColor: errors.name ? '#e74c3c' : '#edf2f0'}} 
+                  style={{...inputStyle, borderColor: errors.name ? colors.error : colors.border}} 
                   placeholder="Saddexda magac..." 
                   onChange={e => setFormData({...formData, name: e.target.value})} 
                 />
-                {errors.name && <span style={{color: '#e74c3c', fontSize: '11px', marginTop: '4px'}}>{errors.name}</span>}
+                {errors.name && <span style={{color: colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.name}</span>}
               </div>
 
-              <div style={inputGroup}><label style={labelStyle}>Culayska (kg)</label><input type="text" value={formData.culays || ''} style={inputStyle} placeholder="70" onChange={e => setFormData({...formData, culays: e.target.value})} /></div>
+              <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Culayska (kg)</label><input type="text" value={formData.culays || ''} style={inputStyle} placeholder="70" onChange={e => setFormData({...formData, culays: e.target.value})} /></div>
               
-              <div style={inputGroup}>
+              <div style={{ marginBottom: '16px' }}>
                 <label style={labelStyle}>Nooca Dhiigga</label>
                 <select value={formData.dhiiga || ""} onChange={e => setFormData({...formData, dhiiga: e.target.value})} style={inputStyle}>
                   <option value="" disabled>Dooro...</option>
@@ -1762,70 +1753,72 @@ useEffect(() => {
                   <option value="O-">O-</option>
                   <option value="AB+">AB+</option>
                   <option value="AB-">AB-</option>
-                  
-                  {/* Inta kale halkan bay geli... */}
                 </select>
               </div>
 
               {/* Dhirirka */}
-              <div style={inputGroup}>
+              <div style={{ marginBottom: '16px' }}>
                 <label style={labelStyle}>Dhirirka (cm)</label>
                 <input 
                   type="text" 
                   value={formData.dhirirka || ''} 
-                  style={{...inputStyle, borderColor: errors.dhirirka ? '#e74c3c' : '#edf2f0'}} 
+                  style={{...inputStyle, borderColor: errors.dhirirka ? colors.error : colors.border}} 
                   placeholder="175" 
                   onChange={e => setFormData({...formData, dhirirka: e.target.value})} 
                 />
-                {errors.dhirirka && <span style={{color: '#e74c3c', fontSize: '11px', marginTop: '4px'}}>{errors.dhirirka}</span>}
+                {errors.dhirirka && <span style={{color: colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.dhirirka}</span>}
               </div>
 
-              <div style={inputGroup}><label style={labelStyle}>Goobta Dhalashada</label><input type="text" value={formData.goobta_dhalashada || ''} style={inputStyle} placeholder="Magaalada..." onChange={e => setFormData({...formData, goobta_dhalashada: e.target.value})} /></div>
+              <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Goobta Dhalashada</label><input type="text" value={formData.goobta_dhalashada || ''} style={inputStyle} placeholder="Magaalada..." onChange={e => setFormData({...formData, goobta_dhalashada: e.target.value})} /></div>
               
-              <div style={inputGroup}><label style={labelStyle}>Taariikhda Dhalashada</label><input type="date" value={formData.tariikhda_dhalashada || ''} style={inputStyle} onChange={e => setFormData({...formData, tariikhda_dhalashada: e.target.value})} /></div>
+              <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Taariikhda Dhalashada</label><input type="date" value={formData.tariikhda_dhalashada || ''} style={inputStyle} onChange={e => setFormData({...formData, tariikhda_dhalashada: e.target.value})} /></div>
 
-              <div style={{ gridColumn: '1/-1', display: 'flex', gap: '15px', marginTop: '10px' }}>
-                <button type="submit" onClick={handleSubmit} style={{ flex: 1, background: '#27ae60', color: 'white', border: 'none', padding: '12px', borderRadius: '10px', cursor: 'pointer', fontWeight: '600' }}>Keydi Xogta</button>
-                <button type="button" onClick={() => setShowCloseFormModal(true)} style={{ padding: '12px 25px', background: '#e30d0d', color: 'white', border: '1px solid #edf2f0', borderRadius: '10px', cursor: 'pointer' }}>XIR FORMKA</button>
+              <div style={{ gridColumn: '1/-1', display: 'flex', gap: '12px', marginTop: '10px' }}>
+                <button type="submit" onClick={handleSubmit} style={{ ...buttonPrimaryStyle, flex: 1 }}>Keydi Xogta</button>
+                <button type="button" onClick={() => setShowCloseFormModal(true)} style={{ ...buttonDangerStyle, padding: '12px 24px' }}>XIR FORMKA</button>
               </div>
             </form>
               </div>
             )}
             
-             <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #edf2f0', overflow: 'hidden' }}>
-              <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #edf2f0' }}>
-                <h3 style={{ margin: 0, fontSize: '16px' }}>Liiska Guud</h3>
-                <input type="text" placeholder="Raadi magac ama ID..." onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 15px', width: '250px', borderRadius: '8px', border: '1px solid #edf2f0', outline: 'none' }} />
+             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${colors.border}` }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: colors.text }}>Liiska Guud</h3>
+                <input type="text" placeholder="Raadi magac ama ID..." onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 15px', width: '250px', borderRadius: '8px', border: `1px solid ${colors.border}`, outline: 'none' }} />
               </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table style={tableStyle}>
                 <thead>
-                  <tr style={{ background: '#fcfdfc', textAlign: 'left', color: '#889891', fontSize: '13px' }}>
-                    <th style={thStyle}>Sawir</th><th style={thStyle}>Sarkaal ID</th><th style={thStyle}>Magaca</th><th style={thStyle}>Status</th>
+                  <tr style={tableHeaderStyle}>
+                    <th style={{ ...tableCellStyle, color: colors.white }}>Sawir</th>
+                    <th style={{ ...tableCellStyle, color: colors.white }}>Sarkaal ID</th>
+                    <th style={{ ...tableCellStyle, color: colors.white }}>Magaca</th>
+                    <th style={{ ...tableCellStyle, color: colors.white }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredData.map(item => {
                     const isSent = initiatedList.some(i => i.sarkaal_data_id === item.id);
                     return (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #f8faf9' }}>
-                        <td style={tdStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%', objectFit: 'cover' }} alt="profile" /></td>
-                        <td style={tdStyle}>{item.sarkaal_id}</td>
-                        <td style={tdStyle}>{item.name}</td>
-                        <td style={tdStyle}>
-                          <div style={{ display: 'flex', gap: '10px' }}>
-                            <button onClick={() => toggleInitiate(item)} disabled={isSent} style={{ background: isSent ? '#f0f2f1' : '#27ae60', color: isSent ? '#889891' : 'white', border: 'none', padding: '6px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>{isSent ? 'Sent to MO' : 'Initiate'}</button>
+                      <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                        <td style={tableCellStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primaryLight}` }} alt="profile" /></td>
+                        <td style={tableCellStyle}>{item.sarkaal_id}</td>
+                        <td style={tableCellStyle}>{item.name}</td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => toggleInitiate(item)} disabled={isSent} style={{ background: isSent ? colors.backgroundAlt : colors.success, color: isSent ? colors.textMuted : colors.white, border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>{isSent ? 'Sent to MO' : 'Initiate'}</button>
                             {isSent && <button 
                             onClick={() => {
-                              setItemToCancel(item); // 1. Kaydi xogta safkaas
-                              setShowCancelModal(true); // 2. Fur Modal-ka (Ma aha alert-iga madow)
+                              setItemToCancel(item);
+                              setShowCancelModal(true);
                             }} 
                             style={{ 
-                              padding: '6px 15px', 
-                              background: '#fff5f5', 
-                              color: '#e74c3c', 
-                              border: '1px solid #fed7d7', 
-                              borderRadius: '8px', 
-                              cursor: 'pointer' 
+                              padding: '6px 12px', 
+                              background: '#fee2e2', 
+                              color: colors.error, 
+                              border: `1px solid ${colors.error}`,
+                              borderRadius: '6px', 
+                              cursor: 'pointer',
+                              fontWeight: '500'
                             }}
                           >
                             Cancel
@@ -1833,13 +1826,14 @@ useEffect(() => {
                             <button 
                               onClick={() => handleEditClick(item)} 
                               style={{ 
-                                padding: '6px 15px', 
-                                background: '#eef2ff', 
-                                color: '#5d5fef', 
-                                border: '1px solid #c7d2fe', 
-                                borderRadius: '8px', 
+                                padding: '6px 12px', 
+                                background: colors.primaryLight, 
+                                color: colors.primary, 
+                                border: `1px solid ${colors.primary}`, 
+                                borderRadius: '6px', 
                                 cursor: 'pointer',
-                                fontSize: '12px'
+                                fontSize: '12px',
+                                fontWeight: '500'
                               }}
                             >
                               Edit
@@ -1855,165 +1849,163 @@ useEffect(() => {
             </>
         )}
       
-         {activePage === 'reports' && (
-    <div style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                
-                {/* 1. WAITING LIST */}
-                <div style={{ 
-                    background: 'var(--bg-card)', padding: '25px', borderRadius: '16px', 
-                    border: '1px solid var(--border-color)', position: 'relative' 
-                }}>
-                
-                    <h3 style={{ color: 'var(--text-main)', marginTop: 0 }}>1. WAITING LIST </h3>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: '#27ae60', textAlign: 'left', color: '#fff' }}>
-                                <th style={thStyle}>No.</th>
-                                <th style={thStyle}>Sawir</th>
-                                <th style={thStyle}>ID</th>
-                                <th style={thStyle}>Magaca</th>
-                                <th style={thStyle}>Xaaladda</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {initiatedList.filter(item => item.status === 'Pending').map((item, index) => (
-                                <tr key={item.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                    <td style={tdStyle}>{index + 1}</td>
-                                    <td style={tdStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%' }} alt="profile" /></td>
-                                    <td style={tdStyle}>{item.sarkaal_id}</td>
-                                    <td style={tdStyle}>{item.name}</td>
-                                    <td style={{ ...tdStyle, color: '#27ae60' }}>Pending</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+        {activePage === 'reports' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Header */}
+            <div style={{ marginBottom: '8px' }}>
+              <h2 style={{ color: colors.text, fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>Warbixinada</h2>
+              <p style={{ color: colors.textMuted, margin: 0, fontSize: '14px' }}>Diiwaanka baaritaannada caafimaadka iyo xogta askarta.</p>
+            </div>
 
-                {/* 2. RECORDS CONTAINER (Warbixinnada Baaritaanka) */}
-                    <div style={{ 
-                      background: 'var(--bg-card)', 
-                      padding: '25px', 
-                      borderRadius: '15px', 
-                      border: '1px solid var(--border-color)',
-                      marginTop: '10px' 
-                    }}>
-                      <h3 style={{ color: 'var(--text-main)', marginTop: 0 }}>RECORDS</h3>
-                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                          <tr style={{ background: '#27ae60', color: 'white' }}>
-                            <th style={thStyle}>No.</th>
-                            <th style={thStyle}>Pic</th>
-                            <th style={thStyle}>ID</th>
-                            <th style={thStyle}>Magaca</th>
-                            <th style={thStyle}>Limitation Type</th>
-                            <th style={thStyle}>Remaining</th>
-                            <th style={thStyle}>Status</th>
+            {/* 1. WAITING LIST */}
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>1. Liiska Sugaya (Pending)</h3>
+                <span style={{ ...badgeStyle, backgroundColor: colors.warningBg, color: colors.warning, border: `1px solid ${colors.warningBorder}` }}>
+                  {initiatedList.filter(item => item.status === 'Pending').length} Qof
+                </span>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr style={tableHeaderStyle}>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>No.</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Sawir</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>ID</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Magaca</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Xaaladda</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {initiatedList.filter(item => item.status === 'Pending').map((item, index) => (
+                      <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                        <td style={tableCellStyle}>{index + 1}</td>
+                        <td style={tableCellStyle}>
+                          <img 
+                            src={`http://localhost:5000/${item.profile_pic}`} 
+                            width="36" 
+                            height="36" 
+                            style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primaryLight}` }} 
+                            alt="profile" 
+                          />
+                        </td>
+                        <td style={{ ...tableCellStyle, fontWeight: '600' }}>{item.sarkaal_id}</td>
+                        <td style={tableCellStyle}>{item.name}</td>
+                        <td style={tableCellStyle}>
+                          <span style={{ ...badgeStyle, backgroundColor: colors.warningBg, color: colors.warning, border: `1px solid ${colors.warningBorder}` }}>
+                            Pending
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {initiatedList.filter(item => item.status === 'Pending').length === 0 && (
+                      <tr>
+                        <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: colors.textMuted }}>
+                          Lama helin qof liiska sugaya.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 2. RECORDS CONTAINER (Warbixinnada Baaritaanka) */}
+            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>2. Warbixinnada Baaritaanka (Active Records)</h3>
+                <span style={{ fontSize: '12px', color: colors.textMuted }}>
+                  Wadarta: <strong>{medicalReports.length}</strong>
+                </span>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr style={tableHeaderStyle}>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>No.</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Sawir</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>ID</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Magaca</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Xaddidaadda</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Maalmaha Hadhay</th>
+                      <th style={{ ...tableCellStyle, color: colors.white }}>Xaaladda</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {medicalReports
+                      .reduce((acc, current) => {
+                        const xogtaHore = acc.find(item => item.sarkaal_id === current.sarkaal_id);
+                        if (xogtaHore) {
+                          xogtaHore.days = parseInt(xogtaHore.days) + parseInt(current.days);
+                          return acc;
+                        } else {
+                          return [...acc, { ...current }];
+                        }
+                      }, [])
+                      .filter(report => {
+                        const maanta = new Date();
+                        const taariikhdaLaQoray = new Date(report.created_at);
+                        const maalmahaIskuDhafan = parseInt(report.days);
+                        const dhamaadka = new Date(taariikhdaLaQoray);
+                        dhamaadka.setDate(dhamaadka.getDate() + maalmahaIskuDhafan);
+                        const farqigaTime = dhamaadka - maanta;
+                        return Math.ceil(farqigaTime / (1000 * 60 * 60 * 24)) > 0;
+                      })
+                      .map((report, index) => {
+                        const maanta = new Date();
+                        const taariikhdaLaQoray = new Date(report.created_at);
+                        const maalmahaIskuDhafan = parseInt(report.days);
+                        const dhamaadka = new Date(taariikhdaLaQoray);
+                        dhamaadka.setDate(dhamaadka.getDate() + maalmahaIskuDhafan);
+                        const farqigaTime = dhamaadka - maanta;
+                        const maalmahaHadhay = Math.ceil(farqigaTime / (1000 * 60 * 60 * 24));
+
+                        if (maalmahaHadhay <= 0) return null;
+
+                        return (
+                          <tr key={report.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                            <td style={tableCellStyle}>{index + 1}</td> 
+                            <td style={tableCellStyle}>
+                              <img 
+                                src={`http://localhost:5000/${report.profile_pic}`} 
+                                width="36" 
+                                height="36" 
+                                style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primaryLight}` }} 
+                                alt="profile" 
+                              />
+                            </td>
+                            <td style={{ ...tableCellStyle, fontWeight: '600' }}>{report.sarkaal_id}</td>
+                            <td style={tableCellStyle}>{report.name}</td>
+                            <td style={tableCellStyle}><strong>{report.limitation}</strong></td>
+                            <td style={tableCellStyle}>
+                              <span style={{
+                                ...badgeStyle,
+                                backgroundColor: maalmahaHadhay <= 1 ? colors.errorBg : colors.successBg,
+                                color: maalmahaHadhay <= 1 ? colors.error : colors.success,
+                                border: `1px solid ${maalmahaHadhay <= 1 ? colors.errorBorder : colors.successBorder}`,
+                              }}>
+                                {maalmahaHadhay} Maalmood
+                              </span>
+                            </td>
+                            <td style={tableCellStyle}>
+                              <span style={{ ...badgeStyle, backgroundColor: colors.successBg, color: colors.success, border: `1px solid ${colors.successBorder}` }}>
+                                Active
+                              </span>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {medicalReports
-                            .reduce((acc, current) => {
-                              const xogtaHore = acc.find(item => item.sarkaal_id === current.sarkaal_id);
-                              if (xogtaHore) {
-                                xogtaHore.days = parseInt(xogtaHore.days) + parseInt(current.days);
-                                return acc;
-                              } else {
-                                return [...acc, { ...current }];
-                              }
-                            }, [])
-                            .filter(report => {
-                              const maanta = new Date();
-                              const taariikhdaLaQoray = new Date(report.created_at);
-                              const maalmahaIskuDhafan = parseInt(report.days);
-                              const dhamaadka = new Date(taariikhdaLaQoray);
-                              dhamaadka.setDate(dhamaadka.getDate() + maalmahaIskuDhafan);
-                              const farqigaTime = dhamaadka - maanta;
-                              return Math.ceil(farqigaTime / (1000 * 60 * 60 * 24)) > 0;
-                            })
-                            .map((report, index) => {
-                              const maanta = new Date();
-                              const taariikhdaLaQoray = new Date(report.created_at);
-                              const maalmahaIskuDhafan = parseInt(report.days);
-                              const dhamaadka = new Date(taariikhdaLaQoray);
-                              dhamaadka.setDate(dhamaadka.getDate() + maalmahaIskuDhafan);
-                              const farqigaTime = dhamaadka - maanta;
-                              const maalmahaHadhay = Math.ceil(farqigaTime / (1000 * 60 * 60 * 24));
-
-                              const isHovered = hoveredRow === report.id;
-
-                              return (
-                                <tr 
-                                  key={report.id} 
-                                  onMouseEnter={() => setHoveredRow(report.id)}
-                                  onMouseLeave={() => setHoveredRow(null)}
-                                  style={{ 
-                                    borderBottom: '1px solid var(--border-color)',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    backgroundColor: isHovered ? 'var(--bg-main)' : 'transparent',
-                                    transform: isHovered ? 'scale(1.01) translateX(5px)' : 'scale(1)', 
-                                    boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.1)' : 'none',
-                                    borderLeft: isHovered ? '5px solid #27ae60' : '5px solid transparent',
-                                    zIndex: isHovered ? 10 : 1,
-                                    position: 'relative',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  <td style={{ ...tdStyle, color: 'var(--text-main)', fontWeight: isHovered ? 'bold' : 'normal' }}>{index + 1}</td> 
-                                  <td style={tdStyle}>
-                                    <img 
-                                      src={`http://localhost:5000/${report.profile_pic}`} 
-                                      width="40" height="40" 
-                                      style={{
-                                        borderRadius: '50%', 
-                                        border: isHovered ? '2px solid #27ae60' : '2px solid transparent',
-                                        transition: '0.3s'
-                                      }} 
-                                      alt="profile" 
-                                    />
-                                  </td>
-                                  <td style={{ ...tdStyle, color: 'var(--text-main)' }}>{report.sarkaal_id}</td>
-                                  <td style={{ ...tdStyle, color: isHovered ? '#27ae60' : 'var(--text-main)', fontWeight: isHovered ? '600' : '400' }}>
-                                    {report.name}
-                                  </td>
-                                  <td style={{ ...tdStyle, color: 'var(--text-main)' }}><b>{report.limitation}</b></td>
-                                  <td style={tdStyle}>
-                                    <span style={{ 
-                                      color: maalmahaHadhay <= 1 ? '#f87171' : '#27ae60', 
-                                      fontWeight: 'bold',
-                                      background: isHovered ? 'rgba(39, 174, 96, 0.1)' : 'transparent',
-                                      padding: '4px 8px',
-                                      borderRadius: '6px'
-                                    }}>
-                                      {maalmahaHadhay} Days
-                                    </span>
-                                  </td>
-                                  <td style={tdStyle}>
-                                    <span style={{ 
-                                      display: 'inline-flex', 
-                                      alignItems: 'center', 
-                                      gap: '5px',
-                                      color: '#27ae60' 
-                                    }}>
-                                      <span style={{ 
-                                        width: '8px', 
-                                        height: '8px', 
-                                        backgroundColor: '#27ae60', 
-                                        borderRadius: '50%',
-                                        boxShadow: isHovered ? '0 0 10px #27ae60' : 'none'
-                                      }}></span>
-                                      Completed
-                                    </span>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                        </tbody>
-                      </table>
-                    </div>
+                        );
+                      })}
+                  </tbody>
+                </table>
+                {medicalReports.length === 0 && (
+                  <div style={{ padding: '40px', textAlign: 'center', color: colors.textMuted }}>
+                    Lama helin warbixin baaritaan ah.
                   </div>
-    </div>
-)}
+                )}
+              </div>
+            </div>
+          </div>
+        )}
                 
                     {/* ASKAR PAGE */}
                     {activePage === 'askar' && (
@@ -2317,10 +2309,10 @@ useEffect(() => {
                     marginBottom: '30px' 
                   }}>
                     {[
-                      { title: 'Total Personnel', value: data.length, icon: <Users size={24}/>, color: '#5d5fef' },
-                      { title: 'In Queue', value: initiatedList.length, icon: <LayoutDashboard size={24}/>, color: '#f1c40f' },
-                      { title: 'Medical Reports', value: medicalReports.length, icon: <FileText size={24}/>, color: '#27ae60' },
-                      { title: 'New Alerts', value: '12', icon: <Bell size={24}/>, color: '#e74c3c' }
+                      { title: 'Total Personnel', value: data.length, icon: <Users size={22}/>, color: '#0f1f38' },
+                      { title: 'In Queue', value: initiatedList.length, icon: <LayoutDashboard size={22}/>, color: '#162a4a' },
+                      { title: 'Medical Reports', value: medicalReports.length, icon: <FileText size={22}/>, color: '#1e3a66' },
+                      { title: 'New Alerts', value: '12', icon: <Bell size={22}/>, color: '#334155' }
                     ].map((card, i) => (
                       <div key={i} style={{
                         background: darkMode ? '#1e1e1e' : '#fff',
@@ -2352,7 +2344,7 @@ useEffect(() => {
                       <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '15px', padding: '10px 0' }}>
                         {/* Tusaale ahaan Garaaf fudud oo CSS ah */}
                         {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-                          <div key={i} style={{ flex: 1, backgroundColor: '#5d5fef', height: `${h}%`, borderRadius: '5px 5px 0 0', opacity: 0.8 }}></div>
+                          <div key={i} style={{ flex: 1, backgroundColor: '#0f1f38', height: `${h}%`, borderRadius: '4px 4px 0 0', opacity: 0.9 }}></div>
                         ))}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: '#888', fontSize: '12px' }}>
@@ -2369,7 +2361,7 @@ useEffect(() => {
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                           <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Dhaqdhaqaaqii Ugu Dambeeyay</h4>
-                          <button style={{ background: 'none', border: 'none', color: '#5d5fef', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                          <button style={{ background: 'none', border: 'none', color: '#0f1f38', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
                             Arag dhamaan
                           </button>
                         </div>
@@ -2390,14 +2382,15 @@ useEffect(() => {
                                 <div style={{ 
                                   width: '40px', 
                                   height: '40px', 
-                                  borderRadius: '10px', 
-                                  backgroundColor: '#5d5fef22', 
+                                  borderRadius: '8px', 
+                                  backgroundColor: '#f1f5f9', 
                                   display: 'flex', 
                                   justifyContent: 'center', 
                                   alignItems: 'center',
-                                  color: '#5d5fef',
-                                  fontWeight: 'bold',
-                                  fontSize: '14px'
+                                  color: '#0f1f38',
+                                  fontWeight: '700',
+                                  fontSize: '14px',
+                                  border: '1px solid #e2e8f0'
                                 }}>
                                   {sarkaal.name.charAt(0)}
                                 </div>

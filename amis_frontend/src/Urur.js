@@ -17,6 +17,19 @@ import {
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import FariimahaModal from './FariimahaModal';
 import { useAuthUser, updateAuthUser, getProfilePicUrl, getAuthConfig } from './authSync';
+import Sidebar from './components/Sidebar';
+import RoleCards from './components/RoleCards';
+import { 
+  colors, 
+  cardStyle, 
+  tableStyle, 
+  tableHeaderStyle, 
+  tableCellStyle, 
+  buttonPrimaryStyle, 
+  buttonSecondaryStyle, 
+  badgeStyle, 
+  borderRadius 
+} from './designSystem';
 
 function UrurDashboard({ user, onLogout }) {
   const [viewMode, setViewMode] = useState('reports'); // 'reports', 'personnel', 'history', 'analytics', 'settings', 'messages'
@@ -325,11 +338,11 @@ function UrurDashboard({ user, onLogout }) {
     padding: '12px 25px',
     cursor: 'pointer',
     border: 'none',
-    background: activeTab === tab ? '#5d5fef' : 'transparent',
-    color: activeTab === tab ? '#fff' : '#555',
+    background: activeTab === tab ? '#0f1f38' : 'transparent',
+    color: activeTab === tab ? '#fff' : '#475569',
     borderRadius: '8px',
-    fontWeight: 'bold',
-    transition: '0.3s',
+    fontWeight: '600',
+    transition: '0.2s',
     display: 'flex',
     alignItems: 'center',
     gap: '8px'
@@ -372,185 +385,62 @@ function UrurDashboard({ user, onLogout }) {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f5f9' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: colors.background }}>
       
-      {/* --- SIDEBAR --- */}
-      <aside style={{
-        ...sidebarStyle,
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
-        background: darkMode ? '#181824' : '#ffffff',
-        borderRight: darkMode ? '1px solid #27273a' : '1px solid #e2e8f0',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 100,
-        boxShadow: darkMode ? 'none' : '2px 0 10px rgba(0,0,0,0.02)'
-      }}>
-        {/* Profile Section */}
-        <div style={{ 
-          padding: '16px 14px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: isExpanded ? 'space-between' : 'center',
-          borderBottom: darkMode ? '1px solid #27273a' : '1px solid #f1f5f9'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <img 
-                src={sawirkaDB} 
-                alt="Profile" 
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  objectFit: 'cover',
-                  border: darkMode ? '2px solid #5d5fef' : '2px solid #5d5fef'
-                }}
-                onError={(e) => {
-                  if (!e.currentTarget.dataset.assetFallback && profilePic) {
-                    e.currentTarget.dataset.assetFallback = 'true';
-                    e.currentTarget.src = `http://localhost:5000/assets/profiles/${String(profilePic).replace(/\\/g, '/').split('/').pop()}`;
-                  } else {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = "/assets/profiles/default.svg";
-                  }
-                }} 
-              />
-              <div style={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                backgroundColor: '#22c55e',
-                border: '2px solid #ffffff'
-              }} />
-            </div>
-            {isExpanded && (
-              <div style={{ overflow: 'hidden' }}>
-                <h3 style={{ 
-                  margin: 0, 
-                  fontSize: '14.5px', 
-                  fontWeight: '700', 
-                  color: darkMode ? '#ffffff' : '#0f172a',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {magacaDB}
-                </h3>
-                <span style={{ 
-                  display: 'inline-block',
-                  margin: '3px 0 0 0', 
-                  fontSize: '10.5px', 
-                  fontWeight: '600',
-                  color: darkMode ? '#93c5fd' : '#4f46e5',
-                  backgroundColor: darkMode ? '#1e293b' : '#eef2ff',
-                  padding: '2px 8px',
-                  borderRadius: '4px'
-                }}>
-                  Role: {userXogta.role || 'Urur'}
-                </span>
-              </div>
-            )}
-          </div>
-          
-          {isExpanded && (
-            <div 
-              onClick={() => setIsExpanded(!isExpanded)} 
-              title="Toggle Menu"
-              style={{ 
-                cursor: 'pointer', 
-                color: darkMode ? '#94a3b8' : '#64748b',
-                padding: '6px',
-                borderRadius: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background-color 0.2s'
-              }}
-            >
-              <Menu size={19} />
-            </div>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav style={{ 
-          padding: '14px 10px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '8px'
-        }}>
-          <div onClick={() => setViewMode('reports')} style={navItemStyle(viewMode === 'reports')}>
-            <FileText size={20} />
-            {isExpanded && <span>Warbixinnada</span>}
-          </div>
-
-          <div onClick={() => setViewMode('personnel')} style={navItemStyle(viewMode === 'personnel' || viewMode === 'history')}>
-            <Users size={20} />
-            {isExpanded && <span>Xogta Askarta</span>}
-          </div>
-
-          <div onClick={() => setViewMode('analytics')} style={navItemStyle(viewMode === 'analytics')}>
-            <PieChart size={20} />
-            {isExpanded && <span>Analytics</span>}
-          </div>
-
-          <div onClick={() => setShowMsgModal(true)} style={navItemStyle(showMsgModal)}>
-            <MessageSquare size={20} />
-            {isExpanded && <span>Fariimaha</span>}
-          </div>
-
-          <div onClick={() => setViewMode('settings')} style={navItemStyle(viewMode === 'settings')}>
-            <Settings size={20} />
-            {isExpanded && <span>Settings</span>}
-          </div>
-        </nav>
-
-        {/* Bottom Actions */}
-        <div style={{ 
-          padding: '14px 10px', 
-          borderTop: darkMode ? '1px solid #27273a' : '1px solid #f1f5f9' 
-        }}>
-          <div onClick={handleLogout} style={{ ...navItemStyle(false), color: '#ef4444' }}>
-            <LogOut size={20} />
-            {isExpanded && <span style={{ fontWeight: '600' }}>Logout</span>}
-          </div>
-        </div>
-      </aside>
+      {/* --- UNIFIED SIDEBAR --- */}
+      <Sidebar
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
+        activeUser={activeUser}
+        activePage={viewMode === 'personnel' || viewMode === 'history' ? 'askar' : viewMode}
+        setActivePage={(page) => {
+          if (page === 'askar') setViewMode('personnel');
+          else setViewMode(page);
+        }}
+        onLogout={handleLogout}
+        showMsgModal={showMsgModal}
+        setShowMsgModal={setShowMsgModal}
+        role="Urur"
+      />
 
       {/* --- MAIN CONTENT --- */}
-      <main style={dynamicMainContentStyle} className="main-content">
+      <main style={{
+        flex: 1,
+        padding: '24px 32px',
+        transition: 'all 0.25s ease',
+        minHeight: '100vh',
+        backgroundColor: colors.background,
+        color: colors.text,
+      }} className="main-content">
         
         {/* Horinta cards only for Reports and Xogta Askarta */}
         {(viewMode === 'reports' || viewMode === 'personnel') && viewMode !== 'history' && (
-          <header style={{ marginBottom: '20px' }} className="no-print">
-            <h1 style={{ color: darkMode ? '#ffffff' : '#1a2a6c', fontSize: '28px', fontWeight: '700', marginBottom: '15px' }}>
-              {viewMode === 'reports' ? 'Warbixinnada Guud' : 'Maamulka Xogta Askarta'}
-            </h1>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginTop: '15px' }}>
-              {['1', '2', '3', '4'].map((h) => (
-                <div key={h} onClick={() => setSelectedHorinta(h)}
-                  style={{
-                    backgroundColor: darkMode ? '#252545' : '#ffffff',
-                    padding: '20px',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                    transition: '0.2s',
-                    borderLeft: selectedHorinta === h ? '5px solid #5d5fef' : '5px solid transparent',
-                    transform: selectedHorinta === h ? 'scale(1.02)' : 'scale(1)',
-                    border: darkMode ? '1px solid #333' : '1px solid #f0f0f0'
-                  }}>
-                  <h3 style={{ margin: 0, color: darkMode ? '#ffffff' : '#333333', fontSize: '16px', fontWeight: '600' }}>HORINTA {h}AAD</h3>
-                  <p style={{ color: darkMode ? '#b3b3b3' : '#666666', fontSize: '12px', marginTop: '5px' }}>Click to switch data</p>
-                </div>
-              ))}
+          <header style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: `1px solid ${colors.border}` }} className="no-print">
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h1 style={{ color: colors.text, fontSize: '22px', fontWeight: '800', margin: 0 }}>
+                  {viewMode === 'reports' ? 'Warbixinnada Guud ee Ururka' : 'Maamulka Xogta Askarta'}
+                </h1>
+                <span style={{
+                  ...badgeStyle,
+                  backgroundColor: colors.primaryLight,
+                  color: colors.primary,
+                  border: `1px solid ${colors.primaryBorder}`,
+                  fontWeight: '700',
+                }}>
+                  Taliska Ururka
+                </span>
+              </div>
+              <p style={{ margin: '4px 0 0', color: colors.textMuted, fontSize: '13px' }}>
+                Dooro Horinta aad doonayso inaad xogteeda kormeerto.
+              </p>
             </div>
+
+            <RoleCards
+              roles={['1', '2', '3', '4']}
+              selectedRole={selectedHorinta}
+              onSelectRole={(h) => setSelectedHorinta(h)}
+            />
           </header>
         )}
 
@@ -765,14 +655,14 @@ function UrurDashboard({ user, onLogout }) {
               className="no-print" 
               onClick={() => setViewMode('personnel')} 
               style={{ 
-                marginBottom: '20px', 
-                padding: '10px 20px', 
+                marginBottom: '16px', 
+                padding: '8px 16px', 
                 border: 'none', 
-                backgroundColor: '#5d5fef', 
+                backgroundColor: '#0f1f38', 
                 color: 'white', 
-                borderRadius: '8px', 
+                borderRadius: '6px', 
                 cursor: 'pointer',
-                fontWeight: '500'
+                fontWeight: '600'
               }}
             >
               ⬅ Ka Noqo
@@ -794,7 +684,7 @@ function UrurDashboard({ user, onLogout }) {
                   height: '100px', 
                   borderRadius: '10px', 
                   objectFit: 'cover', 
-                  border: darkMode ? '3px solid #5d5fef' : '3px solid #1a2a6c' 
+                  border: '2px solid #0f1f38' 
                 }} 
                 alt=""
               />
@@ -925,10 +815,10 @@ function UrurDashboard({ user, onLogout }) {
               marginBottom: '30px' 
             }}>
               {[
-                { title: 'Total Personnel', value: analyticsData.totalPersonnel || 0, icon: <Users size={24}/>, color: '#5d5fef' },
-                { title: 'In Queue', value: analyticsData.totalQueue || 0, icon: <LayoutDashboard size={24}/>, color: '#f1c40f' },
-                { title: 'Medical Reports', value: analyticsData.totalMedicalRecords || 0, icon: <FileText size={24}/>, color: '#27ae60' },
-                { title: 'Recent Reports', value: analyticsData.recentReports || 0, icon: <Bell size={24}/>, color: '#e74c3c' }
+                { title: 'Total Personnel', value: analyticsData.totalPersonnel || 0, icon: <Users size={22}/>, color: '#0f1f38' },
+                { title: 'In Queue', value: analyticsData.totalQueue || 0, icon: <LayoutDashboard size={22}/>, color: '#162a4a' },
+                { title: 'Medical Reports', value: analyticsData.totalMedicalRecords || 0, icon: <FileText size={22}/>, color: '#1e3a66' },
+                { title: 'Recent Reports', value: analyticsData.recentReports || 0, icon: <Bell size={22}/>, color: '#334155' }
               ].map((card, i) => (
                 <div key={i} style={{
                   background: darkMode ? '#1e1e1e' : '#fff',
@@ -965,10 +855,10 @@ function UrurDashboard({ user, onLogout }) {
                       <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <div style={{ 
                           flex: 1, 
-                          backgroundColor: '#5d5fef', 
+                          backgroundColor: '#0f1f38', 
                           height: `${height}%`, 
-                          borderRadius: '5px 5px 0 0', 
-                          opacity: 0.8,
+                          borderRadius: '4px 4px 0 0', 
+                          opacity: 0.9,
                           width: '100%',
                           minHeight: '5px'
                         }}></div>
@@ -988,7 +878,7 @@ function UrurDashboard({ user, onLogout }) {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                   <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: darkMode ? '#fff' : '#333' }}>Dhaqdhaqaaqii Ugu Dambeeyay</h4>
-                  <button style={{ background: 'none', border: 'none', color: '#5d5fef', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                  <button style={{ background: 'none', border: 'none', color: '#0f1f38', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
                     Arag dhamaan
                   </button>
                 </div>
@@ -1008,14 +898,15 @@ function UrurDashboard({ user, onLogout }) {
                         <div style={{ 
                           width: '40px', 
                           height: '40px', 
-                          borderRadius: '10px', 
-                          backgroundColor: '#5d5fef22', 
+                          borderRadius: '8px', 
+                          backgroundColor: '#f1f5f9', 
                           display: 'flex', 
                           justifyContent: 'center', 
                           alignItems: 'center',
-                          color: '#5d5fef',
-                          fontWeight: 'bold',
-                          fontSize: '14px'
+                          color: '#0f1f38',
+                          fontWeight: '700',
+                          fontSize: '14px',
+                          border: '1px solid #e2e8f0'
                         }}>
                           {person.name.charAt(0)}
                         </div>
@@ -1082,8 +973,8 @@ function UrurDashboard({ user, onLogout }) {
               {activeTab === 'profile' && (
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ position: 'relative', display: 'inline-block' }}>
-                    <img src={previewUrl || profilePicUrl} style={{ width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #5d5fef' }} alt="Profile" />
-                    <label htmlFor="pic-upload" style={{ position: 'absolute', bottom: '5px', right: '5px', background: '#5d5fef', color: 'white', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>📸</label>
+                    <img src={previewUrl || profilePicUrl} style={{ width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #0f1f38' }} alt="Profile" />
+                    <label htmlFor="pic-upload" style={{ position: 'absolute', bottom: '5px', right: '5px', background: '#0f1f38', color: 'white', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>📸</label>
                     <input id="pic-upload" type="file" hidden accept="image/*" onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) { setNewProfilePic(file); setPreviewUrl(URL.createObjectURL(file)); }
@@ -1092,7 +983,7 @@ function UrurDashboard({ user, onLogout }) {
                   <div style={{ marginTop: '20px', textAlign: 'left' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: darkMode ? '#b3b3b3' : '#333' }}>Username</label>
                     <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} style={{ ...inputStyle, backgroundColor: darkMode ? '#1a1a1a' : '#fff', color: darkMode ? '#fff' : '#333', border: darkMode ? '1px solid #333' : '1px solid #ddd' }} />
-                    <button onClick={handleSaveSettings} style={{ width: '100%', marginTop: '20px', padding: '12px', background: '#5d5fef', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>{isLoading ? "Saving..." : "Save Changes"}</button>
+                    <button onClick={handleSaveSettings} style={{ width: '100%', marginTop: '20px', padding: '12px', background: '#0f1f38', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>{isLoading ? "Saving..." : "Save Changes"}</button>
                   </div>
                 </div>
               )}
@@ -1208,7 +1099,7 @@ function UrurDashboard({ user, onLogout }) {
                               )}
 
                               {isCheckingEmail && (
-                                <div style={{ color: '#5d5fef', fontSize: '12px', marginTop: '5px' }}>
+                                <div style={{ color: '#0f1f38', fontSize: '12px', marginTop: '5px', fontWeight: '600' }}>
                                   🔄 Checking email legitimacy...
                                 </div>
                               )}
@@ -1331,7 +1222,7 @@ function UrurDashboard({ user, onLogout }) {
                       onClick={() => setDarkMode(!darkMode)}
                       style={{ 
                         padding: '8px 16px', 
-                        background: darkMode ? '#5d5fef' : '#ddd', 
+                        background: '#0f1f38', 
                         color: darkMode ? 'white' : '#333', 
                         border: 'none', 
                         borderRadius: '20px', 
@@ -1361,52 +1252,49 @@ function UrurDashboard({ user, onLogout }) {
 
 // --- SUB-COMPONENT FOR REPORTS ---
 const TableData = ({ data, type, darkMode }) => (
-  <table style={{ 
-    width: '100%', 
-    borderCollapse: 'collapse',
-    backgroundColor: darkMode ? '#1a1a1a' : '#ffffff'
-  }}>
-    <thead style={{ 
-      backgroundColor: darkMode ? '#252545' : '#f8f9fa', 
-      color: darkMode ? '#ffffff' : '#333333',
-      textAlign: 'left'
-    }}>
-      <tr>
-        <th style={{ padding: '12px 15px' }}>ID</th>
-        <th style={{ padding: '12px 15px' }}>Magaca</th>
+  <table style={tableStyle}>
+    <thead>
+      <tr style={tableHeaderStyle}>
+        <th style={tableHeaderStyle}>ID</th>
+        <th style={tableHeaderStyle}>Magaca</th>
         {type === 'pending' ? (
-          <th style={{ padding: '12px 15px' }}>Status</th>
+          <th style={tableHeaderStyle}>Xaaladda</th>
         ) : (
           <>
-            <th style={{ padding: '12px 15px' }}>Xanuunka</th>
-            <th style={{ padding: '12px 15px' }}>Limitations</th>
-            <th style={{ padding: '12px 15px' }}>Days</th>
+            <th style={tableHeaderStyle}>Baaritaanka</th>
+            <th style={tableHeaderStyle}>Xaddidaadda</th>
+            <th style={tableHeaderStyle}>Maalmaha</th>
           </>
         )}
       </tr>
     </thead>
     <tbody>
       {data.length > 0 ? data.map(d => (
-        <tr key={d.id} style={{ 
-          borderBottom: darkMode ? '1px solid #333' : '1px solid #eee',
-          color: darkMode ? '#ffffff' : '#333333'
-        }}>
-          <td style={{ padding: '12px 15px' }}>{d.sarkaal_id}</td>
-          <td style={{ padding: '12px 15px' }}>{d.name}</td>
+        <tr key={d.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+          <td style={{ ...tableCellStyle, fontWeight: '600' }}>{d.sarkaal_id}</td>
+          <td style={tableCellStyle}>{d.name}</td>
           {type === 'pending' ? (
-            <td style={{ padding: '12px 15px', color: '#e67e22', fontWeight: 'bold' }}>⌛ Pending</td>
+            <td style={tableCellStyle}>
+              <span style={{
+                ...badgeStyle,
+                backgroundColor: colors.warningBg,
+                color: colors.warning,
+                border: `1px solid ${colors.warningBorder}`,
+              }}>
+                Pending
+              </span>
+            </td>
           ) : (
             <>
-              <td style={{ padding: '12px 15px', fontWeight: 'bold' }}>{d.diagnosis}</td>
-              <td style={{ padding: '12px 15px' }}>{d.limitation || 'N/A'}</td>
-              <td style={{ padding: '12px 15px' }}>
-                <span style={{ 
-                  backgroundColor: darkMode ? '#1a2a6c' : '#e1f5fe', 
-                  color: darkMode ? '#ffffff' : '#01579b', 
-                  padding: '4px 10px', 
-                  borderRadius: '5px', 
-                  fontSize: '12px', 
-                  fontWeight: 'bold' 
+              <td style={{ ...tableCellStyle, fontWeight: '600', color: colors.text }}>{d.diagnosis}</td>
+              <td style={tableCellStyle}>{d.limitation || 'N/A'}</td>
+              <td style={tableCellStyle}>
+                <span style={{
+                  ...badgeStyle,
+                  backgroundColor: colors.primaryLight,
+                  color: colors.primary,
+                  border: `1px solid ${colors.primaryBorder}`,
+                  fontWeight: '700',
                 }}>
                   {d.days} Maalmood
                 </span>
@@ -1416,7 +1304,7 @@ const TableData = ({ data, type, darkMode }) => (
         </tr>
       )) : (
         <tr>
-          <td colSpan="5" style={{ textAlign: 'center', padding: '15px', color: darkMode ? '#b3b3b3' : '#666666' }}>
+          <td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: colors.textMuted, fontSize: '13px' }}>
             Xog lama hayo
           </td>
         </tr>

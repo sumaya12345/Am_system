@@ -6,7 +6,7 @@ import { SettingsPage } from './S1Dashboard';
 import ProfileImage from './ProfileImage';
 import { useAuthUser, getProfilePicUrl } from './authSync';
 import Sidebar from './components/Sidebar';
-import { colors, cardStyle, tableStyle, tableHeaderStyle, tableCellStyle, buttonPrimaryStyle, buttonSecondaryStyle, buttonDangerStyle, inputStyle, labelStyle, emptyStateStyle } from './designSystem';
+import { colors, cardStyle, tableStyle, tableHeaderStyle, tableCellStyle, buttonPrimaryStyle, buttonSecondaryStyle, buttonDangerStyle, inputStyle, labelStyle, emptyStateStyle, badgeStyle, borderRadius } from './designSystem';
 
 
 
@@ -545,99 +545,170 @@ const handleUpdate = (e) => {
         {/* DASHBOARD PAGE */}
         {activePage === 'dashboard' && (
           <>
-            <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ color: colors.text, fontSize: '28px', fontWeight: '700' }}>S4 Dashboard</h2>
-              <p style={{ color: colors.textMuted }}>Maareynta iyo xareynta xogta sarkaalada.</p>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+              paddingBottom: '16px',
+              borderBottom: `1px solid ${colors.border}`,
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h1 style={{ color: colors.text, fontSize: '22px', fontWeight: '800', margin: 0 }}>S4 Dashboard</h1>
+                  <span style={{
+                    ...badgeStyle,
+                    backgroundColor: colors.primaryLight,
+                    color: colors.primary,
+                    border: `1px solid ${colors.primaryBorder}`,
+                    fontWeight: '700',
+                  }}>
+                    S4 Division Portal
+                  </span>
+                </div>
+                <p style={{ margin: '4px 0 0', color: colors.textMuted, fontSize: '13px' }}>
+                  Maareynta iyo xareynta xogta saraakiisha qeybta S4.
+                </p>
+              </div>
+
+              {!showForm && (
+                <button
+                  onClick={() => setShowForm(true)}
+                  style={buttonPrimaryStyle}
+                >
+                  + Ku Dar Sarkaal
+                </button>
+              )}
             </div>
 
             {showForm && (
-              <div style={{ ...cardStyle, marginBottom: '24px' }}>
-                <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                  <input type="file" onChange={(e) => setFile(e.target.files[0])} style={{ gridColumn: '1/-1' }} />
-                  <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Sarkaal ID</label><input type="text" value={formData.sarkaal_id || ''} style={inputStyle} placeholder="Lambar..." onChange={e => setFormData({...formData, sarkaal_id: e.target.value})} /></div>
-                  <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Magaca Dhammaystiran</label><input type="text" value={formData.name || ''} style={inputStyle} placeholder="Magaca..." onChange={e => setFormData({...formData, name: e.target.value})} /></div>
-                  <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Culayska (kg)</label><input type="text" value={formData.culays || ''} style={inputStyle} placeholder="70" onChange={e => setFormData({...formData, culays: e.target.value})} /></div>
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={labelStyle}>Nooca Dhiigga</label>
-
-                    <select value={formData.dhiiga || ""} onChange={e => setFormData({...formData, dhiiga: e.target.value})} style={inputStyle}>
-
-                      <option value="" disabled>Dooro...</option>
-
-                      <option value="A+">A+</option><option value="A-">A-</option>
-
-                      <option value="B+">B+</option><option value="B-">B-</option>
-
-                      <option value="O+">O+</option><option value="O-">O-</option>
-
-                      <option value="AB+">AB+</option><option value="AB-">AB-</option>
-
-                    </select>
-
+              <div style={{ ...cardStyle, marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '10px', borderBottom: `1px solid ${colors.borderLight}` }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>Foomka Xareynta Sarkaalka</h3>
+                  <button type="button" onClick={() => setShowForm(false)} style={{ ...buttonSecondaryStyle, padding: '4px 10px', fontSize: '12px' }}>Xir Foomka</button>
+                </div>
+                <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                  <div style={{ gridColumn: '1/-1' }}>
+                    <label style={labelStyle}>Sawirka Sarkaalka (Profile Picture)</label>
+                    <input type="file" onChange={(e) => setFile(e.target.files[0])} style={{ fontSize: '13px', color: colors.textMuted }} />
                   </div>
-                  <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Dhirirka (cm)</label><input type="text" value={formData.dhirirka || ''} style={inputStyle} placeholder="175" onChange={e => setFormData({...formData, dhirirka: e.target.value})} /></div>
-                  <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Goobta Dhalashada</label><input type="text" value={formData.goobta_dhalashada || ''} style={inputStyle} placeholder="Magaalada..." onChange={e => setFormData({...formData, goobta_dhalashada: e.target.value})} /></div>
-                  <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Taariikhda Dhalashada</label><input type="date" value={formData.tariikhda_dhalashada || ''} style={inputStyle} onChange={e => setFormData({...formData, tariikhda_dhalashada: e.target.value})} /></div>
-                  <div style={{ gridColumn: '1/-1', display: 'flex', gap: '12px', marginTop: '10px' }}>
-                    <button type="submit" style={{ ...buttonPrimaryStyle, flex: 1 }}>Keydi Xogta</button>
-                    <button type="button" onClick={() => setShowForm(false)} style={{ ...buttonSecondaryStyle, padding: '12px 24px' }}>Xir Foomka</button>
+                  <div><label style={labelStyle}>Sarkaal ID</label><input type="text" value={formData.sarkaal_id || ''} style={inputStyle} placeholder="Lambar..." onChange={e => setFormData({...formData, sarkaal_id: e.target.value})} /></div>
+                  <div><label style={labelStyle}>Magaca Dhammaystiran</label><input type="text" value={formData.name || ''} style={inputStyle} placeholder="Magaca..." onChange={e => setFormData({...formData, name: e.target.value})} /></div>
+                  <div><label style={labelStyle}>Culayska (kg)</label><input type="text" value={formData.culays || ''} style={inputStyle} placeholder="70" onChange={e => setFormData({...formData, culays: e.target.value})} /></div>
+                  <div>
+                    <label style={labelStyle}>Nooca Dhiigga</label>
+                    <select value={formData.dhiiga || ""} onChange={e => setFormData({...formData, dhiiga: e.target.value})} style={inputStyle}>
+                      <option value="" disabled>Dooro...</option>
+                      <option value="A+">A+</option><option value="A-">A-</option>
+                      <option value="B+">B+</option><option value="B-">B-</option>
+                      <option value="O+">O+</option><option value="O-">O-</option>
+                      <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                    </select>
+                  </div>
+                  <div><label style={labelStyle}>Dhirirka (cm)</label><input type="text" value={formData.dhirirka || ''} style={inputStyle} placeholder="175" onChange={e => setFormData({...formData, dhirirka: e.target.value})} /></div>
+                  <div><label style={labelStyle}>Goobta Dhalashada</label><input type="text" value={formData.goobta_dhalashada || ''} style={inputStyle} placeholder="Magaalada..." onChange={e => setFormData({...formData, goobta_dhalashada: e.target.value})} /></div>
+                  <div><label style={labelStyle}>Taariikhda Dhalashada</label><input type="date" value={formData.tariikhda_dhalashada || ''} style={inputStyle} onChange={e => setFormData({...formData, tariikhda_dhalashada: e.target.value})} /></div>
+                  <div style={{ gridColumn: '1/-1', display: 'flex', gap: '10px', marginTop: '6px' }}>
+                    <button type="submit" style={buttonPrimaryStyle}>Keydi Xogta</button>
+                    <button type="button" onClick={() => setShowForm(false)} style={buttonSecondaryStyle}>Ka Noqo</button>
                   </div>
                 </form>
               </div>
             )}
 
             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${colors.border}` }}>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: colors.text }}>Liiska Guud</h3>
-                <input type="text" placeholder="Raadi magac ama ID..." onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 15px', width: '250px', borderRadius: '8px', border: `1px solid ${colors.border}`, outline: 'none' }} />
+              <div style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${colors.border}`, backgroundColor: '#f8fafc' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>Liiska Saraakiisha S4</h3>
+                <input
+                  type="text"
+                  placeholder="Raadi magac ama ID..."
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    height: '34px',
+                    width: '240px',
+                    borderRadius: borderRadius.md,
+                    border: `1px solid ${colors.border}`,
+                    padding: '0 12px',
+                    fontSize: '12.5px',
+                    outline: 'none',
+                    backgroundColor: colors.white,
+                  }}
+                />
               </div>
-              <table style={tableStyle}>
-                <thead>
-                  <tr style={tableHeaderStyle}>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Sawir</th>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Sarkaal ID</th>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Magaca</th>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.map(item => {
-                    const isSent = initiatedList.some(i => i.sarkaal_data_id === item.id);
-                    return (
-                      <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
-                        <td style={tableCellStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primaryLight}` }} alt="profile" /></td>
-                        <td style={tableCellStyle}>{item.sarkaal_id}</td>
-                        <td style={tableCellStyle}>{item.name}</td>
-                        <td style={tableCellStyle}>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button onClick={() => toggleInitiate(item)} disabled={isSent} style={{ background: isSent ? colors.backgroundAlt : colors.success, color: isSent ? colors.textMuted : colors.white, border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>{isSent ? 'Sent to MO' : 'Initiate'}</button>
-                            {isSent && <button 
-                            onClick={() => {
-                              setItemToCancel(item);
-                              setShowCancelModal(true);
-                            }} 
-                            style={{ 
-                              padding: '6px 12px', 
-                              background: '#fee2e2', 
-                              color: colors.error, 
-                              border: `1px solid ${colors.error}`,
-                              borderRadius: '6px', 
-                              cursor: 'pointer',
-                              fontWeight: '500'
-                            }}
-                          >
-                            Cancel
-                          </button>}
-                          <button onClick={() => handleEditClick(item)} style={{ padding: '6px 12px', background: colors.primaryLight, color: colors.primary, border: `1px solid ${colors.primary}`, borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>
-                            Edit
-                          </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={tableStyle}>
+                  <thead>
+                    <tr style={tableHeaderStyle}>
+                      <th style={tableHeaderStyle}>Sawir</th>
+                      <th style={tableHeaderStyle}>Sarkaal ID</th>
+                      <th style={tableHeaderStyle}>Magaca</th>
+                      <th style={tableHeaderStyle}>Ficil / Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.map(item => {
+                      const isSent = initiatedList.some(i => i.sarkaal_data_id === item.id);
+                      return (
+                        <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                          <td style={tableCellStyle}>
+                            <img
+                              src={`http://localhost:5000/${item.profile_pic}`}
+                              width="34"
+                              height="34"
+                              style={{ borderRadius: '50%', objectFit: 'cover', border: `1px solid ${colors.border}` }}
+                              alt="profile"
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/assets/profiles/default.svg"; }}
+                            />
+                          </td>
+                          <td style={{ ...tableCellStyle, fontWeight: '600' }}>{item.sarkaal_id}</td>
+                          <td style={tableCellStyle}>{item.name}</td>
+                          <td style={tableCellStyle}>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <button
+                                onClick={() => toggleInitiate(item)}
+                                disabled={isSent}
+                                style={{
+                                  ...(isSent ? buttonSecondaryStyle : buttonPrimaryStyle),
+                                  padding: '5px 12px',
+                                  fontSize: '12px',
+                                  opacity: isSent ? 0.7 : 1,
+                                }}
+                              >
+                                {isSent ? 'Sent to MO' : 'Initiate to MO'}
+                              </button>
+                              {isSent && (
+                                <button 
+                                  onClick={() => {
+                                    setItemToCancel(item);
+                                    setShowCancelModal(true);
+                                  }} 
+                                  style={{
+                                    ...buttonDangerStyle,
+                                    padding: '5px 10px',
+                                    fontSize: '12px',
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleEditClick(item)}
+                                style={{
+                                  ...buttonSecondaryStyle,
+                                  padding: '5px 12px',
+                                  fontSize: '12px',
+                                }}
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </>
         )}
