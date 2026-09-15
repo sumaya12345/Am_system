@@ -196,7 +196,7 @@ function MessengerH1({ isOpen, onClose, activeUser}) {
 // import React, { useState, useEffect, useCallback } from 'react';
 // import axios from 'axios';
 
-export function SettingsPage({ user, onThemeChange }) {
+export function SettingsPage({ user, onThemeChange, darkMode: parentDarkMode }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPhoneModal, setShowPhoneModal] = useState(false);
@@ -211,14 +211,13 @@ export function SettingsPage({ user, onThemeChange }) {
     }
   }, [authUser]); 
 
-  // 1. HELISTA XOGTA USER-KA IYO CONTACTS-KA
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem(`amis_theme_${user?.id}`) === 'dark');
+  // Use parent darkMode state instead of local state
+  const isDarkMode = parentDarkMode;
   
   // STATES-KA SETTINGS
   const [isLoading, setIsLoading] = useState(false);
   const [userContacts, setUserContacts] = useState(activeUser?.contacts || []); 
   const [newUsername, setNewUsername] = useState(activeUser?.username || "");
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem(`amis_theme_${user?.id}`) === 'dark');
   const [securitySubTab, setSecuritySubTab] = useState('menu'); 
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -244,8 +243,6 @@ export function SettingsPage({ user, onThemeChange }) {
   // Marka la badalo toggle-ka
   const toggleDarkMode = () => {
     const nextDarkMode = !isDarkMode;
-    setIsDarkMode(nextDarkMode);
-    setDarkMode(nextDarkMode);
     if (activeUser?.id) localStorage.setItem(`amis_theme_${activeUser.id}`, nextDarkMode ? 'dark' : 'light');
     if (onThemeChange) onThemeChange(nextDarkMode);
   };
@@ -274,8 +271,8 @@ export function SettingsPage({ user, onThemeChange }) {
     padding: '12px 20px',
     cursor: 'pointer',
     gap: '15px',
-    color: isActive ? '#5d5fef' : (darkMode ? '#b3b3b3' : '#666'),
-    backgroundColor: isActive ? (darkMode ? '#252545' : '#f0f2ff') : 'transparent',
+    color: isActive ? '#5d5fef' : (isDarkMode ? '#b3b3b3' : '#666'),
+    backgroundColor: isActive ? (isDarkMode ? '#252545' : '#f0f2ff') : 'transparent',
     borderRadius: '12px',
     margin: '4px 10px',
     transition: '0.2s'
@@ -1548,15 +1545,15 @@ useEffect(() => {
 
 
   return (
-  <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: colors.background }}>
+  <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: darkMode ? getColors(darkMode).background : colors.background }}>
     <FariimahaModal isOpen={showMsgModal} onClose={() => setShowMsgModal(false)} currentUser={activeUser} darkMode={darkMode} />
 
     {/* XIR FORMKA Confirmation Modal */}
     {showCloseFormModal && (
       <div style={modalOverlayStyle}>
         <div style={{ ...modalContentStyle, width: '400px', textAlign: 'center' }}>
-          <h3 style={{ margin: '0 0 15px 0', color: colors.text }}>Ma hubtaa inaad rabto inaad xirto Form-ka?</h3>
-          <p style={{ color: colors.textMuted, marginBottom: '25px' }}>
+          <h3 style={{ margin: '0 0 15px 0', color: darkMode ? getColors(darkMode).text : colors.text }}>Ma hubtaa inaad rabto inaad xirto Form-ka?</h3>
+          <p style={{ color: darkMode ? getColors(darkMode).textMuted : colors.textMuted, marginBottom: '25px' }}>
             Haddii aad xirto form-ka, markaas ma heli karto inaad xog cusub ku darto ama beddesho xorta ah.
           </p>
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
@@ -1595,29 +1592,30 @@ useEffect(() => {
     <main style={{
       flexGrow: 1,
       padding: '24px',
-      color: colors.text,
+      color: darkMode ? getColors(darkMode).text : colors.text,
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      gap: '24px'
+      gap: '24px',
+      backgroundColor: darkMode ? getColors(darkMode).background : colors.background
     }}>
       <header style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '16px 24px',
-        background: colors.white,
+        background: darkMode ? getColors(darkMode).white : colors.white,
         borderRadius: '12px',
-        border: `1px solid ${colors.border}`,
-        boxShadow: colors.shadow
+        border: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`,
+        boxShadow: darkMode ? getColors(darkMode).shadow : colors.shadow
       }}>
-        <h2 style={{ margin: 0, color: colors.text, fontWeight: '700', fontSize: '20px' }}>S1 Dashboard</h2>
+        <h2 style={{ margin: 0, color: darkMode ? getColors(darkMode).text : colors.text, fontWeight: '700', fontSize: '20px' }}>S1 Dashboard</h2>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           {/* NOTIFICATION ICON */}
           {hasNotifications && (
             <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowNotifyList(!showNotifyList)}>
-              <Bell size={24} color={darkMode ? '#fff' : '#333'} />
+              <Bell size={24} color={darkMode ? getColors(darkMode).text : '#333'} />
               <span style={{
                 position: 'absolute',
                 top: '-5px',
@@ -1695,8 +1693,8 @@ useEffect(() => {
       {activePage === 'dashboard' && (
           <>
             <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ color: colors.text, fontSize: '28px', fontWeight: '700' }}>S1 Dashboard</h2>
-              <p style={{ color: colors.textMuted }}>Maareynta iyo xareynta xogta sarkaalada.</p>
+              <h2 style={{ color: darkMode ? getColors(darkMode).text : colors.text, fontSize: '28px', fontWeight: '700' }}>S1 Dashboard</h2>
+              <p style={{ color: darkMode ? getColors(darkMode).textMuted : colors.textMuted }}>Maareynta iyo xareynta xogta sarkaalada.</p>
             </div>
 
             {!showForm && (
@@ -1708,42 +1706,47 @@ useEffect(() => {
             )}
 
             {showForm && (
-              <div style={{ ...cardStyle, marginBottom: '24px' }}>
+              <div style={{ 
+                ...cardStyle, 
+                marginBottom: '24px',
+                backgroundColor: darkMode ? getColors(darkMode).white : colors.white,
+                border: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`
+              }}>
             <form onSubmit={(e) => { e.preventDefault(); if(validate()) handleSubmit(e); }} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
               
               <input type="file" onChange={(e) => setFile(e.target.files[0])} style={{ gridColumn: '1/-1' }} />
               
               {/* Sarkaal ID */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Sarkaal ID</label>
+                <label style={{...labelStyle, color: darkMode ? getColors(darkMode).text : colors.text}}>Sarkaal ID</label>
                 <input 
                   type="text" 
                   value={formData.sarkaal_id || ''} 
-                  style={{...inputStyle, borderColor: errors.sarkaal_id ? colors.error : colors.border}} 
+                  style={{...inputStyle, borderColor: errors.sarkaal_id ? (darkMode ? getColors(darkMode).error : colors.error) : (darkMode ? getColors(darkMode).border : colors.border), backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text}} 
                   placeholder="4-digit ID..." 
                   onChange={e => setFormData({...formData, sarkaal_id: e.target.value})} 
                 />
-                {errors.sarkaal_id && <span style={{color: colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.sarkaal_id}</span>}
+                {errors.sarkaal_id && <span style={{color: darkMode ? getColors(darkMode).error : colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.sarkaal_id}</span>}
               </div>
 
               {/* Magaca */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Magaca Dhammaystiran</label>
+                <label style={{...labelStyle, color: darkMode ? getColors(darkMode).text : colors.text}}>Magaca Dhammaystiran</label>
                 <input 
                   type="text" 
                   value={formData.name || ''} 
-                  style={{...inputStyle, borderColor: errors.name ? colors.error : colors.border}} 
+                  style={{...inputStyle, borderColor: errors.name ? (darkMode ? getColors(darkMode).error : colors.error) : (darkMode ? getColors(darkMode).border : colors.border), backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text}} 
                   placeholder="Saddexda magac..." 
                   onChange={e => setFormData({...formData, name: e.target.value})} 
                 />
-                {errors.name && <span style={{color: colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.name}</span>}
+                {errors.name && <span style={{color: darkMode ? getColors(darkMode).error : colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.name}</span>}
               </div>
 
-              <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Culayska (kg)</label><input type="text" value={formData.culays || ''} style={inputStyle} placeholder="70" onChange={e => setFormData({...formData, culays: e.target.value})} /></div>
+              <div style={{ marginBottom: '16px' }}><label style={{...labelStyle, color: darkMode ? getColors(darkMode).text : colors.text}}>Culayska (kg)</label><input type="text" value={formData.culays || ''} style={{...inputStyle, backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text}} placeholder="70" onChange={e => setFormData({...formData, culays: e.target.value})} /></div>
               
               <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Nooca Dhiigga</label>
-                <select value={formData.dhiiga || ""} onChange={e => setFormData({...formData, dhiiga: e.target.value})} style={inputStyle}>
+                <label style={{...labelStyle, color: darkMode ? getColors(darkMode).text : colors.text}}>Nooca Dhiigga</label>
+                <select value={formData.dhiiga || ""} onChange={e => setFormData({...formData, dhiiga: e.target.value})} style={{...inputStyle, backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text}}>
                   <option value="" disabled>Dooro...</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
@@ -1758,20 +1761,20 @@ useEffect(() => {
 
               {/* Dhirirka */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Dhirirka (cm)</label>
+                <label style={{...labelStyle, color: darkMode ? getColors(darkMode).text : colors.text}}>Dhirirka (cm)</label>
                 <input 
                   type="text" 
                   value={formData.dhirirka || ''} 
-                  style={{...inputStyle, borderColor: errors.dhirirka ? colors.error : colors.border}} 
+                  style={{...inputStyle, borderColor: errors.dhirirka ? (darkMode ? getColors(darkMode).error : colors.error) : (darkMode ? getColors(darkMode).border : colors.border), backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text}} 
                   placeholder="175" 
                   onChange={e => setFormData({...formData, dhirirka: e.target.value})} 
                 />
-                {errors.dhirirka && <span style={{color: colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.dhirirka}</span>}
+                {errors.dhirirka && <span style={{color: darkMode ? getColors(darkMode).error : colors.error, fontSize: '11px', marginTop: '4px'}}>{errors.dhirirka}</span>}
               </div>
 
-              <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Goobta Dhalashada</label><input type="text" value={formData.goobta_dhalashada || ''} style={inputStyle} placeholder="Magaalada..." onChange={e => setFormData({...formData, goobta_dhalashada: e.target.value})} /></div>
+              <div style={{ marginBottom: '16px' }}><label style={{...labelStyle, color: darkMode ? getColors(darkMode).text : colors.text}}>Goobta Dhalashada</label><input type="text" value={formData.goobta_dhalashada || ''} style={{...inputStyle, backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text}} placeholder="Magaalada..." onChange={e => setFormData({...formData, goobta_dhalashada: e.target.value})} /></div>
               
-              <div style={{ marginBottom: '16px' }}><label style={labelStyle}>Taariikhda Dhalashada</label><input type="date" value={formData.tariikhda_dhalashada || ''} style={inputStyle} onChange={e => setFormData({...formData, tariikhda_dhalashada: e.target.value})} /></div>
+              <div style={{ marginBottom: '16px' }}><label style={{...labelStyle, color: darkMode ? getColors(darkMode).text : colors.text}}>Taariikhda Dhalashada</label><input type="date" value={formData.tariikhda_dhalashada || ''} style={{...inputStyle, backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text}} onChange={e => setFormData({...formData, tariikhda_dhalashada: e.target.value})} /></div>
 
               <div style={{ gridColumn: '1/-1', display: 'flex', gap: '12px', marginTop: '10px' }}>
                 <button type="submit" onClick={handleSubmit} style={{ ...buttonPrimaryStyle, flex: 1 }}>Keydi Xogta</button>
@@ -1781,31 +1784,37 @@ useEffect(() => {
               </div>
             )}
             
-             <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${colors.border}` }}>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: colors.text }}>Liiska Guud</h3>
-                <input type="text" placeholder="Raadi magac ama ID..." onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 15px', width: '250px', borderRadius: '8px', border: `1px solid ${colors.border}`, outline: 'none' }} />
+             <div style={{ 
+                ...cardStyle, 
+                padding: 0, 
+                overflow: 'hidden',
+                backgroundColor: darkMode ? getColors(darkMode).white : colors.white,
+                border: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`
+              }}>
+              <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}` }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: darkMode ? getColors(darkMode).text : colors.text }}>Liiska Guud</h3>
+                <input type="text" placeholder="Raadi magac ama ID..." onChange={(e) => setSearchTerm(e.target.value)} style={{ padding: '8px 15px', width: '250px', borderRadius: '8px', border: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`, outline: 'none', backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fff', color: darkMode ? getColors(darkMode).text : colors.text }} />
               </div>
               <table style={tableStyle}>
                 <thead>
                   <tr style={tableHeaderStyle}>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Sawir</th>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Sarkaal ID</th>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Magaca</th>
-                    <th style={{ ...tableCellStyle, color: colors.white }}>Status</th>
+                    <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Sawir</th>
+                    <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Sarkaal ID</th>
+                    <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Magaca</th>
+                    <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredData.map(item => {
                     const isSent = initiatedList.some(i => i.sarkaal_data_id === item.id);
                     return (
-                      <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
-                        <td style={tableCellStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primaryLight}` }} alt="profile" /></td>
+                      <tr key={item.id} style={{ borderBottom: `1px solid ${darkMode ? getColors(darkMode).borderLight : colors.borderLight}` }}>
+                        <td style={tableCellStyle}><img src={`http://localhost:5000/${item.profile_pic}`} width="40" height="40" style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${darkMode ? getColors(darkMode).primaryLight : colors.primaryLight}` }} alt="profile" /></td>
                         <td style={tableCellStyle}>{item.sarkaal_id}</td>
                         <td style={tableCellStyle}>{item.name}</td>
                         <td style={tableCellStyle}>
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            <button onClick={() => toggleInitiate(item)} disabled={isSent} style={{ background: isSent ? colors.backgroundAlt : colors.success, color: isSent ? colors.textMuted : colors.white, border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>{isSent ? 'Sent to MO' : 'Initiate'}</button>
+                            <button onClick={() => toggleInitiate(item)} disabled={isSent} style={{ background: isSent ? (darkMode ? getColors(darkMode).backgroundAlt : colors.backgroundAlt) : (darkMode ? getColors(darkMode).success : colors.success), color: isSent ? (darkMode ? getColors(darkMode).textMuted : colors.textMuted) : colors.white, border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}>{isSent ? 'Sent to MO' : 'Initiate'}</button>
                             {isSent && <button 
                             onClick={() => {
                               setItemToCancel(item);
@@ -1814,8 +1823,8 @@ useEffect(() => {
                             style={{ 
                               padding: '6px 12px', 
                               background: '#fee2e2', 
-                              color: colors.error, 
-                              border: `1px solid ${colors.error}`,
+                              color: darkMode ? getColors(darkMode).error : colors.error, 
+                              border: `1px solid ${darkMode ? getColors(darkMode).error : colors.error}`,
                               borderRadius: '6px', 
                               cursor: 'pointer',
                               fontWeight: '500'
@@ -1827,9 +1836,9 @@ useEffect(() => {
                               onClick={() => handleEditClick(item)} 
                               style={{ 
                                 padding: '6px 12px', 
-                                background: colors.primaryLight, 
-                                color: colors.primary, 
-                                border: `1px solid ${colors.primary}`, 
+                                background: darkMode ? getColors(darkMode).primaryLight : colors.primaryLight, 
+                                color: darkMode ? getColors(darkMode).primary : colors.primary, 
+                                border: `1px solid ${darkMode ? getColors(darkMode).primary : colors.primary}`, 
                                 borderRadius: '6px', 
                                 cursor: 'pointer',
                                 fontSize: '12px',
@@ -1853,15 +1862,26 @@ useEffect(() => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Header */}
             <div style={{ marginBottom: '8px' }}>
-              <h2 style={{ color: colors.text, fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>Warbixinada</h2>
-              <p style={{ color: colors.textMuted, margin: 0, fontSize: '14px' }}>Diiwaanka baaritaannada caafimaadka iyo xogta askarta.</p>
+              <h2 style={{ color: darkMode ? getColors(darkMode).text : colors.text, fontSize: '28px', fontWeight: '700', margin: '0 0 8px 0' }}>Warbixinada</h2>
+              <p style={{ color: darkMode ? getColors(darkMode).textMuted : colors.textMuted, margin: 0, fontSize: '14px' }}>Diiwaanka baaritaannada caafimaadka iyo xogta askarta.</p>
             </div>
 
             {/* 1. WAITING LIST */}
-            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>1. Liiska Sugaya (Pending)</h3>
-                <span style={{ ...badgeStyle, backgroundColor: colors.warningBg, color: colors.warning, border: `1px solid ${colors.warningBorder}` }}>
+            <div style={{ 
+                ...cardStyle, 
+                padding: 0, 
+                overflow: 'hidden',
+                backgroundColor: darkMode ? getColors(darkMode).white : colors.white,
+                border: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`
+              }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: darkMode ? getColors(darkMode).text : colors.text }}>1. Liiska Sugaya (Pending)</h3>
+                <span style={{ 
+                    ...badgeStyle, 
+                    backgroundColor: darkMode ? getColors(darkMode).warningBg : colors.warningBg, 
+                    color: darkMode ? getColors(darkMode).warning : colors.warning, 
+                    border: `1px solid ${darkMode ? getColors(darkMode).warningBorder : colors.warningBorder}`
+                  }}>
                   {initiatedList.filter(item => item.status === 'Pending').length} Qof
                 </span>
               </div>
@@ -1869,30 +1889,35 @@ useEffect(() => {
                 <table style={tableStyle}>
                   <thead>
                     <tr style={tableHeaderStyle}>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>No.</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Sawir</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>ID</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Magaca</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Xaaladda</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>No.</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Sawir</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>ID</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Magaca</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Xaaladda</th>
                     </tr>
                   </thead>
                   <tbody>
                     {initiatedList.filter(item => item.status === 'Pending').map((item, index) => (
-                      <tr key={item.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                      <tr key={item.id} style={{ borderBottom: `1px solid ${darkMode ? getColors(darkMode).borderLight : colors.borderLight}` }}>
                         <td style={tableCellStyle}>{index + 1}</td>
                         <td style={tableCellStyle}>
                           <img 
                             src={`http://localhost:5000/${item.profile_pic}`} 
                             width="36" 
                             height="36" 
-                            style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primaryLight}` }} 
+                            style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${darkMode ? getColors(darkMode).primaryLight : colors.primaryLight}` }} 
                             alt="profile" 
                           />
                         </td>
                         <td style={{ ...tableCellStyle, fontWeight: '600' }}>{item.sarkaal_id}</td>
                         <td style={tableCellStyle}>{item.name}</td>
                         <td style={tableCellStyle}>
-                          <span style={{ ...badgeStyle, backgroundColor: colors.warningBg, color: colors.warning, border: `1px solid ${colors.warningBorder}` }}>
+                          <span style={{ 
+                              ...badgeStyle, 
+                              backgroundColor: darkMode ? getColors(darkMode).warningBg : colors.warningBg, 
+                              color: darkMode ? getColors(darkMode).warning : colors.warning, 
+                              border: `1px solid ${darkMode ? getColors(darkMode).warningBorder : colors.warningBorder}`
+                            }}>
                             Pending
                           </span>
                         </td>
@@ -1900,7 +1925,7 @@ useEffect(() => {
                     ))}
                     {initiatedList.filter(item => item.status === 'Pending').length === 0 && (
                       <tr>
-                        <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: colors.textMuted }}>
+                        <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: darkMode ? getColors(darkMode).textMuted : colors.textMuted }}>
                           Lama helin qof liiska sugaya.
                         </td>
                       </tr>
@@ -1911,10 +1936,16 @@ useEffect(() => {
             </div>
 
             {/* 2. RECORDS CONTAINER (Warbixinnada Baaritaanka) */}
-            <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: colors.text }}>2. Warbixinnada Baaritaanka (Active Records)</h3>
-                <span style={{ fontSize: '12px', color: colors.textMuted }}>
+            <div style={{ 
+                ...cardStyle, 
+                padding: 0, 
+                overflow: 'hidden',
+                backgroundColor: darkMode ? getColors(darkMode).white : colors.white,
+                border: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`
+              }}>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${darkMode ? getColors(darkMode).border : colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '700', color: darkMode ? getColors(darkMode).text : colors.text }}>2. Warbixinnada Baaritaanka (Active Records)</h3>
+                <span style={{ fontSize: '12px', color: darkMode ? getColors(darkMode).textMuted : colors.textMuted }}>
                   Wadarta: <strong>{medicalReports.length}</strong>
                 </span>
               </div>
@@ -1922,13 +1953,13 @@ useEffect(() => {
                 <table style={tableStyle}>
                   <thead>
                     <tr style={tableHeaderStyle}>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>No.</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Sawir</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>ID</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Magaca</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Xaddidaadda</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Maalmaha Hadhay</th>
-                      <th style={{ ...tableCellStyle, color: colors.white }}>Xaaladda</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>No.</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Sawir</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>ID</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Magaca</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Xaddidaadda</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Maalmaha Hadhay</th>
+                      <th style={{ ...tableCellStyle, color: darkMode ? getColors(darkMode).white : colors.white }}>Xaaladda</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1963,14 +1994,14 @@ useEffect(() => {
                         if (maalmahaHadhay <= 0) return null;
 
                         return (
-                          <tr key={report.id} style={{ borderBottom: `1px solid ${colors.borderLight}` }}>
+                          <tr key={report.id} style={{ borderBottom: `1px solid ${darkMode ? getColors(darkMode).borderLight : colors.borderLight}` }}>
                             <td style={tableCellStyle}>{index + 1}</td> 
                             <td style={tableCellStyle}>
                               <img 
                                 src={`http://localhost:5000/${report.profile_pic}`} 
                                 width="36" 
                                 height="36" 
-                                style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${colors.primaryLight}` }} 
+                                style={{ borderRadius: '50%', objectFit: 'cover', border: `2px solid ${darkMode ? getColors(darkMode).primaryLight : colors.primaryLight}` }} 
                                 alt="profile" 
                               />
                             </td>
@@ -1980,15 +2011,20 @@ useEffect(() => {
                             <td style={tableCellStyle}>
                               <span style={{
                                 ...badgeStyle,
-                                backgroundColor: maalmahaHadhay <= 1 ? colors.errorBg : colors.successBg,
-                                color: maalmahaHadhay <= 1 ? colors.error : colors.success,
-                                border: `1px solid ${maalmahaHadhay <= 1 ? colors.errorBorder : colors.successBorder}`,
+                                backgroundColor: maalmahaHadhay <= 1 ? (darkMode ? getColors(darkMode).errorBg : colors.errorBg) : (darkMode ? getColors(darkMode).successBg : colors.successBg),
+                                color: maalmahaHadhay <= 1 ? (darkMode ? getColors(darkMode).error : colors.error) : (darkMode ? getColors(darkMode).success : colors.success),
+                                border: `1px solid ${maalmahaHadhay <= 1 ? (darkMode ? getColors(darkMode).errorBorder : colors.errorBorder) : (darkMode ? getColors(darkMode).successBorder : colors.successBorder)}`,
                               }}>
                                 {maalmahaHadhay} Maalmood
                               </span>
                             </td>
                             <td style={tableCellStyle}>
-                              <span style={{ ...badgeStyle, backgroundColor: colors.successBg, color: colors.success, border: `1px solid ${colors.successBorder}` }}>
+                              <span style={{ 
+                                  ...badgeStyle, 
+                                  backgroundColor: darkMode ? getColors(darkMode).successBg : colors.successBg, 
+                                  color: darkMode ? getColors(darkMode).success : colors.success, 
+                                  border: `1px solid ${darkMode ? getColors(darkMode).successBorder : colors.successBorder}`
+                                }}>
                                 Active
                               </span>
                             </td>
@@ -1998,7 +2034,7 @@ useEffect(() => {
                   </tbody>
                 </table>
                 {medicalReports.length === 0 && (
-                  <div style={{ padding: '40px', textAlign: 'center', color: colors.textMuted }}>
+                  <div style={{ padding: '40px', textAlign: 'center', color: darkMode ? getColors(darkMode).textMuted : colors.textMuted }}>
                     Lama helin warbixin baaritaan ah.
                   </div>
                 )}
@@ -2010,7 +2046,7 @@ useEffect(() => {
                     {/* ASKAR PAGE */}
                     {activePage === 'askar' && (
                         <div style={{ 
-                          background: '#fcfdfd', 
+                          background: darkMode ? getColors(darkMode).background : '#fcfdfd', 
                           padding: '40px', 
                           borderRadius: '30px', 
                           minHeight: '80vh'
@@ -2021,16 +2057,16 @@ useEffect(() => {
                             justifyContent: 'space-between', 
                             alignItems: 'center', 
                             marginBottom: '35px',
-                            background: 'white',
+                            background: darkMode ? getColors(darkMode).white : 'white',
                             padding: '20px 30px',
                             borderRadius: '20px',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+                            boxShadow: darkMode ? getColors(darkMode).shadow : '0 4px 20px rgba(0,0,0,0.02)'
                           }}>
                             <div>
-                            <h2 style={{ color: '#1a2e26', margin: 0, fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px' }}>
+                            <h2 style={{ color: darkMode ? getColors(darkMode).text : '#1a2e26', margin: 0, fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px' }}>
                               Xogta Guud ee Askarta
                             </h2>
-                            <p style={{ color: '#889891', margin: '5px 0 0 0', fontSize: '14px' }}>Diiwaanka rasmiga ah ee ciidanka</p>
+                            <p style={{ color: darkMode ? getColors(darkMode).textMuted : '#889891', margin: '5px 0 0 0', fontSize: '14px' }}>Diiwaanka rasmiga ah ee ciidanka</p>
                           </div>
 
                             {/* SEARCH BAR CUSUB */}
@@ -2043,11 +2079,12 @@ useEffect(() => {
                                   width: '100%', 
                                   padding: '12px 20px 12px 45px', 
                                   borderRadius: '14px', 
-                                  border: '1px solid #edf2f0', 
-                                  background: '#f8faf9',
+                                  border: `1px solid ${darkMode ? getColors(darkMode).border : '#edf2f0'}`, 
+                                  background: darkMode ? getColors(darkMode).backgroundAlt : '#f8faf9',
                                   fontSize: '14px',
                                   outline: 'none',
-                                  transition: '0.3s'
+                                  transition: '0.3s',
+                                  color: darkMode ? getColors(darkMode).text : '#333'
                                 }} 
                               /> 
                              <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px' }}>
@@ -2062,11 +2099,11 @@ useEffect(() => {
                             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 12px' }}>
                               <thead>
                                 <tr style={{ textAlign: 'left' }}>
-                                  <th style={{ padding: '10px 20px', color: '#000000', fontSize: '13px' }}>No</th>
-                                  <th style={{ padding: '10px 20px', color: '#000000', fontSize: '13px' }}>Sarkaal</th>
-                                  <th style={{ padding: '10px 20px', color: '#000000', fontSize: '13px' }}>Xogta Jirka</th>
-                                  <th style={{ padding: '10px 20px', color: '#000000', fontSize: '13px' }}>Dhalashada</th>
-                                  <th style={{ padding: '10px 20px', color: '#000000', fontSize: '13px', textAlign: 'center' }}>Maareynta</th>
+                                  <th style={{ padding: '10px 20px', color: darkMode ? getColors(darkMode).text : '#000000', fontSize: '13px' }}>No</th>
+                                  <th style={{ padding: '10px 20px', color: darkMode ? getColors(darkMode).text : '#000000', fontSize: '13px' }}>Sarkaal</th>
+                                  <th style={{ padding: '10px 20px', color: darkMode ? getColors(darkMode).text : '#000000', fontSize: '13px' }}>Xogta Jirka</th>
+                                  <th style={{ padding: '10px 20px', color: darkMode ? getColors(darkMode).text : '#000000', fontSize: '13px' }}>Dhalashada</th>
+                                  <th style={{ padding: '10px 20px', color: darkMode ? getColors(darkMode).text : '#000000', fontSize: '13px', textAlign: 'center' }}>Maareynta</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -2083,13 +2120,13 @@ useEffect(() => {
                                         onMouseEnter={() => setHoveredRowId(item.id)}
                                         onMouseLeave={() => setHoveredRowId(null)}
                                         style={{ 
-                                          backgroundColor: 'white',
-                                          boxShadow: isHovered ? '0 10px 30px rgba(0,0,0,0.05)' : 'none',
+                                          backgroundColor: darkMode ? getColors(darkMode).white : 'white',
+                                          boxShadow: isHovered ? (darkMode ? getColors(darkMode).shadowLg : '0 10px 30px rgba(0,0,0,0.05)') : 'none',
                                           transform: isHovered ? 'translateY(-2px)' : 'none',
                                           transition: '0.3s all ease'
                                         }}
                                       >
-                                        <td style={{ padding: '20px', borderRadius: '18px 0 0 18px', fontWeight: '700', color: '#d1dbd6' }}>
+                                        <td style={{ padding: '20px', borderRadius: '18px 0 0 18px', fontWeight: '700', color: darkMode ? getColors(darkMode).textMuted : '#d1dbd6' }}>
                                           {index + 1}
                                         </td>
                                         <td style={{ padding: '20px' }}>
@@ -2101,20 +2138,20 @@ useEffect(() => {
                                               alt="" 
                                             />
                                             <div>
-                                              <div style={{ fontWeight: '700', color: '#1a2e26' }}>{item.name}</div>
-                                              <div style={{ fontSize: '12px', color: '#27ae60' }}>ID: {item.sarkaal_id}</div>
+                                              <div style={{ fontWeight: '700', color: darkMode ? getColors(darkMode).text : '#1a2e26' }}>{item.name}</div>
+                                              <div style={{ fontSize: '12px', color: darkMode ? getColors(darkMode).success : '#27ae60' }}>ID: {item.sarkaal_id}</div>
                                             </div>
                                           </div>
                                         </td>
                                         <td style={{ padding: '20px' }}>
                                           <div style={{ display: 'flex', gap: '8px' }}>
-                                            <span style={{ background: '#f0f7ff', color: '#007bff', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>{item.culays}kg</span>
-                                            <span style={{ background: '#fff1f0', color: '#e74c3c', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>{item.dhiiga}</span>
+                                            <span style={{ background: darkMode ? getColors(darkMode).primaryLight : '#f0f7ff', color: darkMode ? getColors(darkMode).primary : '#007bff', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>{item.culays}kg</span>
+                                            <span style={{ background: darkMode ? getColors(darkMode).errorBg : '#fff1f0', color: darkMode ? getColors(darkMode).error : '#e74c3c', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>{item.dhiiga}</span>
                                           </div>
                                         </td>
                                         <td style={{ padding: '20px' }}>
-                                          <div style={{ fontSize: '13px', fontWeight: '600' }}>{item.goobta_dhalashada}</div>
-                                          <div style={{ fontSize: '11px', color: '#889891' }}>{new Date(item.tariikhda_dhalashada).toLocaleDateString()}</div>
+                                          <div style={{ fontSize: '13px', fontWeight: '600', color: darkMode ? getColors(darkMode).text : '#333' }}>{item.goobta_dhalashada}</div>
+                                          <div style={{ fontSize: '11px', color: darkMode ? getColors(darkMode).textMuted : '#889891' }}>{new Date(item.tariikhda_dhalashada).toLocaleDateString()}</div>
                                         </td>
                                         <td style={{ padding: '20px', borderRadius: '0 18px 18px 0', textAlign: 'center' }}>
                                           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
@@ -2124,7 +2161,7 @@ useEffect(() => {
                                           onClick={() => { setViewedSarkaal(item); setActivePage('view'); }} 
                                           style={{ 
                                               background: 'none', 
-                                              color: '#6b7280', 
+                                              color: darkMode ? getColors(darkMode).textMuted : '#6b7280', 
                                               border: 'none', 
                                               padding: '4px 8px', 
                                               cursor: 'pointer', 
@@ -2134,8 +2171,8 @@ useEffect(() => {
                                               textTransform: 'uppercase',
                                               transition: 'color 0.2s'
                                           }}
-                                          onMouseOver={(e) => e.target.style.color = '#10b981'}
-                                          onMouseOut={(e) => e.target.style.color = '#6b7280'}
+                                          onMouseOver={(e) => e.target.style.color = darkMode ? getColors(darkMode).success : '#10b981'}
+                                          onMouseOut={(e) => e.target.style.color = darkMode ? getColors(darkMode).textMuted : '#6b7280'}
                                       >
                                           View
                                       </button>
@@ -2155,7 +2192,7 @@ useEffect(() => {
                                                     onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                                                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                                 >
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={darkMode ? getColors(darkMode).textMuted : '#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                     </svg>
@@ -2176,7 +2213,7 @@ useEffect(() => {
                                                     onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                                                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                                 >
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={darkMode ? getColors(darkMode).textMuted : '#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <polyline points="3 6 5 6 21 6"></polyline>
                                                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                                     </svg>
@@ -2294,10 +2331,10 @@ useEffect(() => {
                     })()}
                   </div>
                 )}
-                {activePage === 'settings' && <SettingsPage user={activeUser} onThemeChange={setDarkMode} />}
+                {activePage === 'settings' && <SettingsPage user={activeUser} onThemeChange={setDarkMode} darkMode={darkMode} />}
                 {activePage === 'analytics' && (
                 <div style={{ animation: 'fadeIn 0.5s ease-in' }}>
-                  <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '25px', color: darkMode ? '#fff' : '#2c3e50' }}>
+                  <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '25px', color: darkMode ? getColors(darkMode).text : '#2c3e50' }}>
                     Analytics & Overview
                   </h2>
 
@@ -2309,16 +2346,16 @@ useEffect(() => {
                     marginBottom: '30px' 
                   }}>
                     {[
-                      { title: 'Total Personnel', value: data.length, icon: <Users size={22}/>, color: '#0f1f38' },
-                      { title: 'In Queue', value: initiatedList.length, icon: <LayoutDashboard size={22}/>, color: '#162a4a' },
-                      { title: 'Medical Reports', value: medicalReports.length, icon: <FileText size={22}/>, color: '#1e3a66' },
-                      { title: 'New Alerts', value: '12', icon: <Bell size={22}/>, color: '#334155' }
+                      { title: 'Total Personnel', value: data.length, icon: <Users size={22}/>, color: darkMode ? '#60a5fa' : '#0f1f38' },
+                      { title: 'In Queue', value: initiatedList.length, icon: <LayoutDashboard size={22}/>, color: darkMode ? '#93c5fd' : '#162a4a' },
+                      { title: 'Medical Reports', value: medicalReports.length, icon: <FileText size={22}/>, color: darkMode ? '#3b82f6' : '#1e3a66' },
+                      { title: 'New Alerts', value: '12', icon: <Bell size={22}/>, color: darkMode ? '#2563eb' : '#334155' }
                     ].map((card, i) => (
                       <div key={i} style={{
-                        background: darkMode ? '#1e1e1e' : '#fff',
+                        background: darkMode ? getColors(darkMode).white : '#fff',
                         padding: '20px',
                         borderRadius: '16px',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                        boxShadow: darkMode ? getColors(darkMode).shadow : '0 4px 15px rgba(0,0,0,0.05)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '15px',
@@ -2328,8 +2365,8 @@ useEffect(() => {
                           {card.icon}
                         </div>
                         <div>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#888', fontWeight: '600' }}>{card.title}</p>
-                          <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '700' }}>{card.value}</h3>
+                          <p style={{ margin: 0, fontSize: '12px', color: darkMode ? getColors(darkMode).textMuted : '#888', fontWeight: '600' }}>{card.title}</p>
+                          <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '700', color: darkMode ? getColors(darkMode).text : '#333' }}>{card.value}</h3>
                         </div>
                       </div>
                     ))}
@@ -2339,29 +2376,29 @@ useEffect(() => {
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
                     
                     {/* Monthly Activity Chart */}
-                    <div style={{ background: darkMode ? '#1e1e1e' : '#fff', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-                      <h4 style={{ margin: '0 0 20px 0', fontSize: '16px' }}>Monthly Medical Activity</h4>
+                    <div style={{ background: darkMode ? getColors(darkMode).white : '#fff', padding: '25px', borderRadius: '20px', boxShadow: darkMode ? getColors(darkMode).shadow : '0 4px 15px rgba(0,0,0,0.05)' }}>
+                      <h4 style={{ margin: '0 0 20px 0', fontSize: '16px', color: darkMode ? getColors(darkMode).text : '#333' }}>Monthly Medical Activity</h4>
                       <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '15px', padding: '10px 0' }}>
                         {/* Tusaale ahaan Garaaf fudud oo CSS ah */}
                         {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-                          <div key={i} style={{ flex: 1, backgroundColor: '#0f1f38', height: `${h}%`, borderRadius: '4px 4px 0 0', opacity: 0.9 }}></div>
+                          <div key={i} style={{ flex: 1, backgroundColor: darkMode ? '#60a5fa' : '#0f1f38', height: `${h}%`, borderRadius: '4px 4px 0 0', opacity: 0.9 }}></div>
                         ))}
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: '#888', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: darkMode ? getColors(darkMode).textMuted : '#888', fontSize: '12px' }}>
                         <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span>
                       </div>
                     </div>
                       {/* --- RECENT ACTIVITY SECTION --- */}
                       <div style={{ 
                         marginTop: '30px', 
-                        background: darkMode ? '#1e1e1e' : '#fff', 
+                        background: darkMode ? getColors(darkMode).white : '#fff', 
                         padding: '25px', 
                         borderRadius: '20px', 
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.05)' 
+                        boxShadow: darkMode ? getColors(darkMode).shadow : '0 4px 15px rgba(0,0,0,0.05)' 
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Dhaqdhaqaaqii Ugu Dambeeyay</h4>
-                          <button style={{ background: 'none', border: 'none', color: '#0f1f38', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                          <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: darkMode ? getColors(darkMode).text : '#333' }}>Dhaqdhaqaaqii Ugu Dambeeyay</h4>
+                          <button style={{ background: 'none', border: 'none', color: darkMode ? getColors(darkMode).primary : '#0f1f38', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
                             Arag dhamaan
                           </button>
                         </div>
@@ -2375,28 +2412,28 @@ useEffect(() => {
                               justifyContent: 'space-between', 
                               padding: '12px', 
                               borderRadius: '12px', 
-                              backgroundColor: darkMode ? '#252525' : '#fcfcfc',
-                              border: darkMode ? '1px solid #333' : '1px solid #f0f0f0'
+                              backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#fcfcfc',
+                              border: `1px solid ${darkMode ? getColors(darkMode).border : '#f0f0f0'}`
                             }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                 <div style={{ 
                                   width: '40px', 
                                   height: '40px', 
                                   borderRadius: '8px', 
-                                  backgroundColor: '#f1f5f9', 
+                                  backgroundColor: darkMode ? getColors(darkMode).backgroundAlt : '#f1f5f9', 
                                   display: 'flex', 
                                   justifyContent: 'center', 
                                   alignItems: 'center',
-                                  color: '#0f1f38',
+                                  color: darkMode ? getColors(darkMode).primary : '#0f1f38',
                                   fontWeight: '700',
                                   fontSize: '14px',
-                                  border: '1px solid #e2e8f0'
+                                  border: `1px solid ${darkMode ? getColors(darkMode).border : '#e2e8f0'}`
                                 }}>
                                   {sarkaal.name.charAt(0)}
                                 </div>
                                 <div>
-                                  <h5 style={{ margin: 0, fontSize: '14px', fontWeight: '600' }}>{sarkaal.name}</h5>
-                                  <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>ID: {sarkaal.sarkaal_id} • {sarkaal.goobta_dhalashada}</p>
+                                  <h5 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: darkMode ? getColors(darkMode).text : '#333' }}>{sarkaal.name}</h5>
+                                  <p style={{ margin: 0, fontSize: '11px', color: darkMode ? getColors(darkMode).textMuted : '#888' }}>ID: {sarkaal.sarkaal_id} • {sarkaal.goobta_dhalashada}</p>
                                 </div>
                               </div>
                               
@@ -2405,28 +2442,26 @@ useEffect(() => {
                                   fontSize: '11px', 
                                   padding: '4px 10px', 
                                   borderRadius: '20px', 
-                                  backgroundColor: '#27ae6022', 
-                                  color: '#27ae60',
+                                  backgroundColor: darkMode ? getColors(darkMode).successBg : '#27ae6022', 
+                                  color: darkMode ? getColors(darkMode).success : '#27ae60',
                                   fontWeight: '600'
                                 }}>
                                   Diiwaangashan
                                 </span>
-                                <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#aaa' }}>Hadda</p>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: darkMode ? getColors(darkMode).textLight : '#aaa' }}>Hadda</p>
                               </div>
                             </div>
                           ))}
 
                           {data.length === 0 && (
-                            <p style={{ textAlign: 'center', color: '#888', fontSize: '14px' }}>Wali wax dhaqdhaqaaq ah ma jiro.</p>
+                            <p style={{ textAlign: 'center', color: darkMode ? getColors(darkMode).textMuted : '#888', fontSize: '14px' }}>Wali wax dhaqdhaqaaq ah ma jiro.</p>
                           )}
                         </div>
                       </div>
                     
                   </div>
                 </div>
-                
-                
-              )}
+                )}
               
               
              </main>
